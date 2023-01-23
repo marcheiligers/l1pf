@@ -1,0 +1,3 @@
+cd ../dragonruby-macos-4-1
+./dragonruby ../l1pf
+cd -
