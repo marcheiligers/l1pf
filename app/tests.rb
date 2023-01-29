@@ -34,6 +34,53 @@ def test_invert_permutation_3(_args, assert)
   assert.equal!(Permutations.invert([1, 2, 0]), [2, 0, 1])
 end
 
+# > var ps = [[0, 1, 2], [0, 2, 1], [1, 0, 2], [1, 2, 0], [2, 0, 1], [2, 1, 0]]
+# undefined
+# > console.log(ps)
+# [
+#   [ 0, 1, 2 ],
+#   [ 0, 2, 1 ],
+#   [ 1, 0, 2 ],
+#   [ 1, 2, 0 ],
+#   [ 2, 0, 1 ],
+#   [ 2, 1, 0 ]
+# ]
+# > var invPerm = require("invert-permutation")
+# undefined
+# > console.log(ps.map((p) => invPerm(p)))
+# [
+#   [ 0, 1, 2 ],
+#   [ 0, 2, 1 ],
+#   [ 1, 0, 2 ],
+#   [ 2, 0, 1 ],
+#   [ 1, 2, 0 ],
+#   [ 2, 1, 0 ]
+# ]
+# undefined
+
+INVERTS = [
+  [ 0, 1, 2 ],
+  [ 0, 2, 1 ],
+  [ 1, 0, 2 ],
+  [ 1, 2, 0 ],
+  [ 2, 0, 1 ],
+  [ 2, 1, 0 ]
+].zip([
+  [ 0, 1, 2 ],
+  [ 0, 2, 1 ],
+  [ 1, 0, 2 ],
+  [ 2, 0, 1 ],
+  [ 1, 2, 0 ],
+  [ 2, 1, 0 ]
+])
+
+def test_invert_permutation_4(_args, assert)
+  INVERTS.each do |from, to|
+    assert.equal!(Permutations.invert(from), to)
+  end
+end
+
+
 PERMUTATION_RANKS = [
   [1, 2, 3, 0],
   [2, 1, 3, 0],
@@ -258,81 +305,77 @@ def test_ndarray_step(_args, assert)
   end
 end
 
+# var ps = [[0, 1, 2], [0, 2, 1], [1, 0, 2], [1, 2, 0], [2, 0, 1], [2, 1, 0]]
+# ndarray = require("./ndarray.js")
+# console.log(ps.map((p) => ndarray(p, p, p).order))
+
+ORDERS = [
+  [ 0, 1, 2 ],
+  [ 0, 2, 1 ],
+  [ 1, 0, 2 ],
+  [ 1, 2, 0 ],
+  [ 2, 0, 1 ],
+  [ 2, 1, 0 ]
+].zip([
+  [ 0, 1, 2 ],
+  [ 0, 2, 1 ],
+  [ 1, 0, 2 ],
+  [ 2, 0, 1 ],
+  [ 1, 2, 0 ],
+  [ 2, 1, 0 ]
+])
+
 def test_ndarray_order(_args, assert)
+  assert.equal!(INVERTS, ORDERS)
+
   assert.equal!(NDArray.new([0]).pick(0).order, [])
 
   assert.equal!(NDArray.new(Array.new(2), iota(2), [0, 1]).order, [0, 1])
   assert.equal!(NDArray.new(Array.new(2), iota(2), [1, 0]).order, [1, 0])
 
-  assert.equal!(NDArray.new(Array.new(3), iota(3), [0, 1, 2]).order, [2, 1, 0])
-  assert.equal!(NDArray.new(Array.new(3), iota(3), [2, 1, 0]).order, [0, 1, 2])
-  assert.equal!(NDArray.new(Array.new(3), iota(3), [0, 2, 1]).order, [1, 2, 0])
-  assert.equal!(NDArray.new(Array.new(3), iota(3), [1, 2, 0]).order, [1, 0, 2])
-
-
-#order [0, 1] incorrect for stride [1, 0] except this seems right
-
-  # var f = 1
-  # for(var d=1; d<=5; ++d) {
-  #   f *= d
-  #   for(var r=0; r<f; ++r) {
-  #     var p = perm.unrank(d, r)
-  #     var x = ndarray([1], dup(d), p)
-  #     t.same(x.order, invPerm(p.slice(0)), x.stride.join(","))
-  #   }
-  # }
+  ORDERS.each do |from, to|
+    assert.equal!(NDArray.new(from, from, from).order, to)
+  end
 
   f = 1
   (1..5).to_a.each do |d|
     f *= d
     f.times do |r|
       p = Permutations.unrank(d, r)
-      x = NDArray.new([1], Array.new(d, 0), p)
-      puts "r = #{r}, d = #{d}, p = #{p}, pinv = #{Permutations.invert(p)}, x.stride = #{x.stride}, x.order = #{x.order}"
-      assert.equal!(x.order, Permutations.invert(p), "stride #{x.stride}, order #{x.order} incorrect")
+      x = NDArray.new(Array.new(d, 0), Array.new(d, 0), p.dup)
+      assert.equal!(x.order, Permutations.invert(p.dup), "p #{p}, invert(p) #{Permutations.invert(p)}, stride #{x.stride}, order #{x.order} incorrect")
     end
   end
 end
 
-# def test_ndarray_transpose(_args, assert)
-#   x = NDArray.new(Array.new(6), [2, 3])
-#   y = x.transpose(1, 0)
-#   assert.equal!(x.shape[0], y.shape[1])
-#   assert.equal!(x.shape[1], y.shape[0])
-#   assert.equal!(x.stride[0], y.stride[1])
-#   assert.equal!(x.stride[1], y.stride[0])
+def test_ndarray_transpose(_args, assert)
+  x = NDArray.new(Array.new(6), [2, 3])
+  y = x.transpose(1, 0)
+  assert.equal!(x.shape[0], y.shape[1])
+  assert.equal!(x.shape[1], y.shape[0])
+  assert.equal!(x.stride[0], y.stride[1])
+  assert.equal!(x.stride[1], y.stride[0])
 
-#   f = 1
-#   shape = []
-#   (1..4).to_a.each do |d|
-#     shape.push(d)
-#     f *= d
-#     x = NDArray.new(Array.new(f), shape, shape)
-#     f.times do |r|
-#       p = Permutations.unrank(d, r)
-#       xt = x.transpose(*p)
-#       xord = xt.order
-#       pinv = Permutations.invert(p.dup)
-# puts '>-' * 60
-# puts "p = #{p}"
-# puts "x = #{x}"
-# puts "x.stride = #{x.stride}"
-# puts "xt = #{xt}"
-# puts "pinv = #{pinv}"
-# puts "xord = #{xord}"
-# puts '-<' * 60
-#       assert.equal!(xord, pinv)
-#       d.times do |i|
-# puts "d = #{d}"
-# puts "i = #{i}"
-# puts "xt.shape[i] = #{xt.shape[i]}"
-# puts "x.shape[p[i]] = #{x.shape[p[i]]}"
-#         assert.equal!(xt.shape[i], x.shape[p[i]])
-#         assert.equal!(xt.stride[i], x.stride[p[i]])
-#       end
-#     end
-#   end
-# end
+  f = 1
+  shape = []
+  (1..4).to_a.each do |d|
+    shape.push(d)
+    f *= d
+    x = NDArray.new(Array.new(f), shape, shape)
+    f.times do |r|
+      p = Permutations.unrank(d, r)
+      xt = x.transpose(*p)
+      xord = xt.order
+      pinv = Permutations.invert(p.dup)
+      assert.equal!(xord, pinv)
+
+      d.times do |i|
+        assert.equal!(xt.shape[i], x.shape[p[i]])
+        assert.equal!(xt.stride[i], x.stride[p[i]])
+      end
+    end
+  end
+end
 
 # test("toJSON", function(t) {
 
@@ -380,6 +423,6 @@ def test_nildarray(_args, assert)
   assert.equal!(n.get, nil)
 end
 
-$gtk.reset 100
+$gtk.reset rand(1_000_000)
 # $gtk.log_level = :off
 $gtk.tests.start

@@ -5,7 +5,7 @@ class NDArray
   include Serializable
   serializable_ignore []
 
-  attr_reader :data, :shape, :stride, :offset, :dimension, :order
+  attr_reader :data, :shape, :stride, :offset, :dimension
 
   def initialize(data, shape = nil, stride = nil, offset = nil)
     @data = data
@@ -25,13 +25,6 @@ class NDArray
       stride
     end
 
-    @order = case @dimension
-             when 0 then []
-             when 1 then [0]
-             when 2 then @stride[0].abs > @stride[1].abs ? [1, 0] : [0, 1]
-             else @stride.zip(iota(@dimension)).sort_by { |a| -a[0].abs }.map { |a| a[1] }
-             end
-
     @offset = offset || begin
       offset = 0
 
@@ -45,6 +38,29 @@ class NDArray
 
   def size
     @shape.reduce(1, :*)
+  end
+
+  def stride
+    @stride ||= begin
+      sz = 1
+
+      str = Array.new(@dimension)
+      (@dimension - 1).downto(0) do |i|
+        str[i] = sz
+        sz *= @shape[i]
+      end
+
+      str
+    end
+  end
+
+  def order
+    @order ||= case @dimension
+               when 0 then []
+               when 1 then [0]
+               when 2 then @stride[0].abs > @stride[1].abs ? [1, 0] : [0, 1]
+               else @stride.zip(iota(@dimension)).sort_by { |a| a[0].abs }.map { |a| a[1] }
+               end
   end
 
   def step(*pos)
@@ -175,6 +191,8 @@ class NDArray
     @data[index(*pos)] = val
   end
 end
+
+# TODO: Build optimized OneDArray and TwoDArray
 
 class NilDArray < NDArray
   include Serializable
