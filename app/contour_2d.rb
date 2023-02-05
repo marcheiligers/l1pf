@@ -3,7 +3,7 @@
 # module.exports = getContours
 
 Segment = Struct.new(:start, :end, :direction, :height, :visited, :next, :prev)
-Vertex = Struct.new(:x, :y, :segment, :orientation)
+# Vertex = Struct.new(:x, :y, :segment, :orientation)
 
 def getParallelCountours(array, direction)
   n = array.shape[0]

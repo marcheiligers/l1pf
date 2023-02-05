@@ -10,81 +10,84 @@
 def heuristic(tdist, tx, ty, node)
   nx = node.x.to_i
   ny = node.y.to_i
-  pi = Math.abs(nx-tx) + Math.abs(ny-ty)
+  pi = (nx - tx).abs + (ny - ty).abs
   ndist = node.landmark
   NUM_LANDMARKS.times do |i|
-    pi = Math.max(pi, tdist[i]-ndist[i])
+    pi = [pi, tdist[i] - ndist[i]].max
   end
   1.0000009536743164 * pi
 end
 
 class Graph
+  attr_reader :target, :verts, :free_list, :to_visit, :last_s, :last_t,
+              :src_x, :src_y, :dst_x, :dst_y, :landmarks, :landmark_dist
+
   def initialize
-    @target   = createVertex(0,0)
+    @target   = Vertex.create(0, 0)
     @verts    = []
-    @freeList = @target
-    @toVisit  = NIL
-    @lastS    = nil
-    @lastT    = nil
-    @srcX     = 0
-    @srcY     = 0
-    @dstX     = 0
-    @dstY     = 0
+    @free_list = @target
+    @to_visit  = Vertex::NIL
+    @last_s    = nil
+    @last_t    = nil
+    @src_x     = 0
+    @src_y     = 0
+    @dst_x     = 0
+    @dst_y     = 0
     @landmarks = []
-    @landmarkDist = Array.new(NUM_LANDMARKS, INFINITY) # copied from Vertex
+    @landmark_dist = Array.new(NUM_LANDMARKS, INFINITY) # copied from Vertex
   end
 
   def vertex(x, y)
-    v = createVertex(x, y)
+    v = Vertex.create(x, y)
     @verts.push(v)
     v
   end
 
   def link(u, v)
-    link(u, v) # TODO: from vertex.rb
+    Vertex.link(u, v)
   end
 
-  def setSourceAndTarget(sx, sy, tx, ty)
-    @srcX = sx || 0
-    @srcY = sy || 0
-    @dstX = tx || 0
-    @dstY = ty || 0
+  def set_source_and_target(sx, sy, tx, ty)
+    @src_x = sx || 0
+    @src_y = sy || 0
+    @dst_x = tx || 0
+    @dst_y = ty || 0
   end
 
   # Mark vertex connected to source
-  def addS(v)
+  def add_s(v)
     if (v.state & 2) == 0
-      v.heuristic   = heuristic(@landmarkDist, @dstX, @dstY, v)
-      v.weight      = Math.abs(@srcX - v.x) + Math.abs(@srcY - v.y) + v.heuristic
+      v.heuristic   = heuristic(@landmark_dist, @dst_x, @dst_y, v)
+      v.weight      = Math.abs(@src_x - v.x) + Math.abs(@src_y - v.y) + v.heuristic
       v.state       |= 2
       v.pred        = nil
-      @toVisit  = push(@toVisit, v) # TODO: from Vertex
-      @freeList = insert(@freeList, v) # TODO: from Vertex
-      @lastS    = v
+      @to_visit  = Vertex.push(@to_visit, v)
+      @free_list = Vertex.insert(@free_list, v)
+      @last_s    = v
     end
   end
 
   # Mark vertex connected to target
-  def addT(v)
+  def add_t(v)
     if (v.state & 1) == 0
       v.state       ||= 1
-      @freeList = insert(@freeList, v) # TODO: from Vertex
-      @lastT    = v
+      @free_list = Vertex.insert(@free_list, v)
+      @last_t    = v
 
       # Update heuristic
-      d = Math.abs(v.x-this.dstX) + Math.abs(v.y-this.dstY)
+      d = (v.x - @dst_x).abs + (v.y - @dst_y).abs
       vdist = v.landmark
-      tdist = @landmarkDist
+      tdist = @landmark_dist
       NUM_LANDMARKS.times do |i|
-        tdist[i] = Math.min(tdist[i], vdist[i]+d)
+        tdist[i] = [tdist[i], vdist[i] + d].min
       end
     end
   end
 
   # Retrieves the path from dst->src
-  def getPath(out)
-    prevX = @dstX
-    prevY = @dstY
+  def get_path(out)
+    prevX = @dst_x
+    prevY = @dst_y
     out.push(prevX, prevY)
     head = @target.pred
 
@@ -97,12 +100,12 @@ class Graph
       head = head.pred
     end
 
-    out.push(@srcX, prevY) if prevX != @srcX && prevY != @srcY
-    out.push(@srcX, @srcY) if prevX != @srcX || prevY != @srcY
+    out.push(@src_x, prevY) if prevX != @src_x && prevY != @src_y
+    out.push(@src_x, @src_y) if prevX != @src_x || prevY != @src_y
     out
   end
 
-  def findComponents
+  def find_components
     verts = @verts
     n = verts.length
     n.times do |i|
@@ -116,48 +119,46 @@ class Graph
 
       label = components.length
       root.component = label
-      toVisit = [root]
+      to_visit = [root]
       ptr = 0
 
-      while ptr < toVisit.length
-        v = toVisit[ptr += 1]
+      while ptr < to_visit.length
+        v = to_visit[ptr]
+        ptr += 1
         adj = v.edges
         adj.length.times do |j|
           u = adj[j]
           next if u.component >= 0
           u.component = label
-          toVisit.push(u)
+          to_visit.push(u)
         end
       end
 
-      components.push(toVisit)
+      components.push(to_visit)
     end
 
     components
   end
 
   # Find all landmarks
-  def compareVert(a, b)
-    d = a.x - b.x
-    return d unless d == 0
-
-    return a.y - b.y
-  end
-
   # For each connected component compute a set of landmarks
-  def findLandmarks(component)
-    component.sort(compareVert) # TODO: Compare function
+  def find_landmarks(unsorted_component)
+    component = unsorted_component.sort do |a, b|
+      d = a.x - b.x
+      d == 0 ? a.y - b.y : d
+    end
+
     v = component[component.length >> 1]
 
     NUM_LANDMARKS.times do |k|
       v.weight = 0.0
       @landmarks.push(v)
 
-      toVisit = v
-      while toVisit != NIL
-        v = toVisit
+      to_visit = v
+      while to_visit != Vertex::NIL
+        v = to_visit
         v.state = 2
-        toVisit = pop(toVisit) # TODO: from Vertex
+        to_visit = Vertex.pop(to_visit)
         w = v.weight
         adj = v.edges
 
@@ -165,68 +166,67 @@ class Graph
           u = adj[i]
           next if u.state == 2
 
-          d = w + Math.abs(v.x-u.x) + Math.abs(v.y-u.y)
+          d = w + (v.x - u.x).abs + (v.y - u.y).abs
           if u.state == 0
             u.state = 1
             u.weight = d
-            toVisit = push(toVisit, u) # TODO: from Vertex
+            to_visit = Vertex.push(to_visit, u)
           elsif d < u.weight
             u.weight = d
-            toVisit = decreaseKey(toVisit, u) # TODO: from Vertex
+            to_visit = Vertex.decrease_key(to_visit, u)
           end
         end
       end
 
-      farthestD = 0
+      farthest_d = 0
       component.length.times do |i|
         u = component[i]
         u.state = 0
         u.landmark[k] = u.weight
-        s = Float::INFINITY
+        s = INFINITY
         k.times do |j|
-          s = Math.min(s, u.landmark[j])
+          s = [s, u.landmark[j]].min
         end
-        if s > farthestD
+        if s > farthest_d
           v = u
-          farthestD = s
+          farthest_d = s
         end
       end
     end
   end
 
   def init
-    components = findComponents
-    components.length.times do |i|
-      findLandmarks(components[i])
+    find_components.each do |component|
+      find_landmarks(component)
     end
   end
 
   # Runs a* on the graph
   def search
     target   = @target
-    freeList = @freeList
-    tdist    = @landmarkDist
+    free_list = @free_list
+    tdist    = @landmark_dist
 
     # Initialize target properties
-    dist = Float::INFINITY
+    dist = INFINITY
 
     # Test for case where S and T are disconnected
-    if @lastS &&@lastT && @lastS.component == @lastT.component
-      sx = @srcX.to_i
-      sy = @srcY.to_i
-      tx = @dstX.to_i
-      ty = @dstY.to_i
+    if @last_s && @last_t && @last_s.component == @last_t.component
+      # sx = @src_x.to_i
+      # sy = @src_y.to_i
+      tx = @dst_x.to_i
+      ty = @dst_y.to_i
 
-      toVisit = @toVisit
-      while toVisit != NIL
-        node = toVisit
+      to_visit = @to_visit
+      while to_visit != NIL
+        node = to_visit
         nx   = node.x.to_i
         ny   = node.y.to_i
-        d    = Math.floor(node.weight - node.heuristic)
+        d    = (node.weight - node.heuristic).floor
 
         if node.state == 3
           # If node is connected to target, exit
-          dist = d + Math.abs(tx-nx) + Math.abs(ty-ny)
+          dist = d + (tx - nx).abs + (ty - ny).abs
           target.pred = node
           break
         end
@@ -234,8 +234,8 @@ class Graph
         # Mark node closed
         node.state = 4
 
-        # Pop node from toVisit queue
-        toVisit = pop(toVisit) # TODO: from Vertex
+        # Pop node from to_visit queue
+        to_visit = Vertex.pop(to_visit)
 
         adj = node.edges
         n   = adj.length
@@ -244,21 +244,21 @@ class Graph
           state = v.state
           next if state == 4
 
-          vd = d + Math.abs(nx-v.x) + Math.abs(ny-v.y)
+          vd = d + (nx - v.x).abs + (ny - v.y).abs
           if state < 2
             vh      = heuristic(tdist, tx, ty, v)
             v.state    |= 2
             v.heuristic = vh
             v.weight    = vh + vd
             v.pred      = node
-            toVisit     = push(toVisit, v) # TODO: from Vertex
-            freeList    = insert(freeList, v) # TODO: from Vertex
+            to_visit     = Vertex.push(to_visit, v)
+            free_list    = Vertex.insert(free_list, v)
           else
             vw = vd + v.heuristic
             if vw < v.weight
               v.weight   = vw
               v.pred     = node
-              toVisit    = decreaseKey(toVisit, v) # TODO: from Vertex
+              to_visit    = Vertex.decrease_key(to_visit, v)
             end
           end
         end
@@ -266,16 +266,16 @@ class Graph
     end
 
     # Clear the free list & priority queue
-    clear(freeList) # TODO: from Vertex
+    Vertex.clear(free_list)
 
     # Reset pointers
-    @freeList = target
-    @toVisit = NIL
-    @lastS = @lastT = nil
+    @free_list = target
+    @to_visit = NIL
+    @last_s = @last_t = nil
 
     # Reset landmark distance
     NUM_LANDMARKS.times do |i|
-      tdist[i] = Float::INFINITY
+      tdist[i] = INFINITY
     end
 
     # Return target distance

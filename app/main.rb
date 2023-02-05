@@ -6,6 +6,7 @@ require 'app/nd_array.rb'
 # require 'app/binary_search_bounds.rb'
 
 require 'app/vertex.rb'
+require 'app/graph.rb'
 
 def tick(args)
 
