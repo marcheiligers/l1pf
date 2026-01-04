@@ -17,14 +17,18 @@ require 'lib/geometry'
 require 'lib/planner'
 
 # Interactive L1 Pathfinding Demo
-# GRID_SIZE = 33
-# CELL_SIZE = 20
+
+# GRID_SIZE = 15
+# CELL_SIZE = 40
+
+GRID_SIZE = 33
+CELL_SIZE = 20
 
 # GRID_SIZE = 65
 # CELL_SIZE = 10
 
-GRID_SIZE = 129
-CELL_SIZE = 5
+# GRID_SIZE = 129
+# CELL_SIZE = 5
 
 # GRID_SIZE = 255
 # CELL_SIZE = 2
@@ -215,7 +219,7 @@ end
 
 def update_path(args)
   # Recreate planner if needed (when start/end move or grid changes)
-  if args.state.needs_planner_update
+  # if args.state.needs_planner_update
     # Ensure start and end positions are clear in grid
     start_idx = args.state.start_y * GRID_SIZE + args.state.start_x
     end_idx = args.state.end_y * GRID_SIZE + args.state.end_x
@@ -226,7 +230,7 @@ def update_path(args)
     args.state.grid = NDArray.new(args.state.grid_data, [GRID_SIZE, GRID_SIZE])
     args.state.planner = createPlanner(args.state.grid)
     args.state.needs_planner_update = false
-  end
+  # end
 
   # Run pathfinding
   if args.state.planner.nil?
@@ -256,6 +260,8 @@ def render(args)
   args.outputs.background_color = BG_COLOR
 
   # Draw grid cells
+  gd = args.state.grid_data
+  s = args.outputs.solids
   y = -1
   while (y += 1) < GRID_SIZE
     x = -1
@@ -264,11 +270,11 @@ def render(args)
       cell_y = GRID_OFFSET_Y + y * CELL_SIZE
 
       idx = y * GRID_SIZE + x
-      is_wall = args.state.grid_data[idx] == 1
+      is_wall = gd[idx] == 1
 
       next unless is_wall
 
-      args.outputs.solids << { x: cell_x, y: cell_y, w: CELL_SIZE, h: CELL_SIZE, **WALL_COLOR }
+      s << { x: cell_x, y: cell_y, w: CELL_SIZE, h: CELL_SIZE, **WALL_COLOR }
     end
   end
 
@@ -276,22 +282,26 @@ def render(args)
   if args.state.path.length > 0
     # Draw path segments
     # Swap path coordinates to match grid system
+    pa = args.state.path
+    ll = args.outputs.lines
+    l = pa.length - 2
     i = 0
-    while i < args.state.path.length - 2
-      x1 = GRID_OFFSET_X + args.state.path[i + 1] * CELL_SIZE + CELL_SIZE / 2
-      y1 = GRID_OFFSET_Y + args.state.path[i] * CELL_SIZE + CELL_SIZE / 2
-      x2 = GRID_OFFSET_X + args.state.path[i + 3] * CELL_SIZE + CELL_SIZE / 2
-      y2 = GRID_OFFSET_Y + args.state.path[i + 2] * CELL_SIZE + CELL_SIZE / 2
+    while i < l
+      x1 = GRID_OFFSET_X + pa[i + 1] * CELL_SIZE + CELL_SIZE / 2
+      y1 = GRID_OFFSET_Y + pa[i] * CELL_SIZE + CELL_SIZE / 2
+      x2 = GRID_OFFSET_X + pa[i + 3] * CELL_SIZE + CELL_SIZE / 2
+      y2 = GRID_OFFSET_Y + pa[i + 2] * CELL_SIZE + CELL_SIZE / 2
 
-      args.outputs.lines << { x: x1, y: y1, x2: x2, y2: y2, **PATH_COLOR }
+      ll << { x: x1, y: y1, x2: x2, y2: y2, **PATH_COLOR }
       i += 2
     end
 
     # Draw waypoints
     i = 0
-    while i < args.state.path.length
-      x = GRID_OFFSET_X + args.state.path[i + 1] * CELL_SIZE + CELL_SIZE / 2
-      y = GRID_OFFSET_Y + args.state.path[i] * CELL_SIZE + CELL_SIZE / 2
+    l = pa.length
+    while i < l
+      x = GRID_OFFSET_X + pa[i + 1] * CELL_SIZE + CELL_SIZE / 2
+      y = GRID_OFFSET_Y + pa[i] * CELL_SIZE + CELL_SIZE / 2
 
       args.outputs.solids << { x: x - 2, y: y - 2, w: 4, h: 4, **PATH_COLOR }
       i += 2

@@ -252,11 +252,12 @@ private
     buckets = []
     lastSteiner = nil # TODO: rename to last_steiner (snake_case convention)
     i = 0
-    while i < vis.length # TODO: already using while loop - good!
+    l = vis.length
+    while i < l
       v0 = i
-      v1 = [i + BUCKET_SIZE - 1, vis.length - 1].min
+      v1 = (i + BUCKET_SIZE - 1).lesser(l - 1)
       # Continue while next element exists and has same y coordinate
-      while v1 + 1 < vis.length && vis[v1][1] == vis[v1 + 1][1]
+      while v1 + 1 < l && vis[v1][1] == vis[v1 + 1][1]
         v1 += 1
       end
 

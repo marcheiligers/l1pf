@@ -30,18 +30,12 @@ class PathGeometry
     return 0 if x < 0 || y < 0
 
     return @grid.get(
-      # [x, @grid.shape[0]-1].min.to_i,
-      # [y, @grid.shape[1]-1].min.to_i
       x.lesser(@grid.shape[0]-1),
       y.lesser(@grid.shape[1]-1)
     )
   end
 
   def stabBox(ax, ay, bx, by) # TODO: rename to stab_box (snake_case convention)
-    # lox = [ax, bx].min
-    # loy = [ay, by].min
-    # hix = [ax, bx].max
-    # hiy = [ay, by].max
     lox = ax.lesser(bx)
     loy = ay.lesser(by)
     hix = ax.greater(bx)
@@ -90,7 +84,7 @@ def createGeometry(grid) # TODO: rename to create_geometry (snake_case conventio
           # Compute b[j] + min(sign(offset[j]), 0)
           # This gives b[j] if offset is positive, b[j]-1 if negative
           sign = offset[j] < 0 ? -1 : 1
-          offset[j] = b[j] + [sign, 0].min
+          offset[j] = b[j] + sign.lesser(0)
         end
         if(offset[0] >= 0 && offset[0] < grid.shape[0] &&
            offset[1] >= 0 && offset[1] < grid.shape[1] &&

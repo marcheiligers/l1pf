@@ -81,7 +81,7 @@ class Graph
       l = NUM_LANDMARKS
       i = -1
       while (i += 1) < l
-        tdist[i] = [tdist[i], vdist[i] + d].min
+        tdist[i] = tdist[i].lesser(vdist[i] + d)
       end
     end
   end
@@ -198,7 +198,7 @@ class Graph
         s = INFINITY
         j = -1
         while (j += 1) < k
-          s = [s, u.landmark[j]].min
+          s = s.lesser(u.landmark[j])
         end
         if s > farthest_d
           v = u
@@ -209,8 +209,11 @@ class Graph
   end
 
   def init
-    find_components.each do |component|
-      find_landmarks(component)
+    components = find_components
+    i = -1
+    l = components.length
+    while (i += 1) < l
+      find_landmarks(components[i])
     end
   end
 
