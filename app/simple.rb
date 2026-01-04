@@ -1,15 +1,4 @@
-# Required files in correct order
-require 'lib/serializable'
-require 'lib/nd_array'
-require 'lib/geometry'
-require 'lib/contour_2d'
-require 'lib/orient'
-require 'lib/uniq'
-require 'lib/nd_array_ops'
-require 'lib/prefix_sum'
-require 'lib/vertex'      # Must come before graph
-require 'lib/graph'
-require 'lib/planner'
+require 'lib/l1pf'
 
 # Create a grid with walls (exact same as JS example)
 grid_data = [

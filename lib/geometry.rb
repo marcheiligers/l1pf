@@ -29,9 +29,9 @@ class PathGeometry
   def integrate(x, y)
     return 0 if x < 0 || y < 0
 
-    return @grid.get(
-      x.lesser(@grid.shape[0]-1),
-      y.lesser(@grid.shape[1]-1)
+    @grid.get(
+      x.lesser(@grid.shape[0] - 1),
+      y.lesser(@grid.shape[1] - 1)
     )
   end
 
@@ -41,9 +41,7 @@ class PathGeometry
     hix = ax.greater(bx)
     hiy = ay.greater(by)
 
-    s = integrate(lox - 1, loy - 1) - integrate(lox - 1, hiy) - integrate(hix, loy - 1) + integrate(hix, hiy)
-
-    return s > 0
+    integrate(lox - 1, loy - 1) - integrate(lox - 1, hiy) - integrate(hix, loy - 1) + integrate(hix, hiy) > 0
   end
 end
 
@@ -96,7 +94,8 @@ def createGeometry(grid) # TODO: rename to create_geometry (snake_case conventio
   end
 
   # Remove duplicate corners
-  corners = uniq(corners, method(:comparePair))
+  # corners = uniq(corners, method(:comparePair))
+  corners.uniq!
 
   # Create integral image
   img = NDArray.new(Array.new(grid.shape[0]*grid.shape[1], 0), grid.shape)

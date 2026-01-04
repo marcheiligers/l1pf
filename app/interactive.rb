@@ -1,20 +1,4 @@
-require 'lib/serializable'
-require 'lib/permutations'
-require 'lib/iota_array'
-require 'lib/nd_array'
-require 'lib/contour_2d'
-require 'lib/binary_search_bounds'
-
-# New utility functions
-require 'lib/orient'
-require 'lib/uniq'
-require 'lib/nd_array_ops'
-require 'lib/prefix_sum'
-
-require 'lib/vertex'
-require 'lib/graph'
-require 'lib/geometry'
-require 'lib/planner'
+require 'lib/l1pf'
 
 # Interactive L1 Pathfinding Demo
 
