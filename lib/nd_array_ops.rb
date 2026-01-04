@@ -12,7 +12,8 @@ def ndarray_iterate(arrays)
 
   size = arr.shape.reduce(1, :*)
 
-  size.times do |i| # TODO: convert to while loop for performance: i = -1; while (i += 1) < size
+  i = -1
+  while (i += 1) < size
     yield i
   end
 end
@@ -749,7 +750,8 @@ end
 # Any - returns true if any element is truthy
 def ops_any(array)
   size = array.shape.reduce(1, :*)
-  size.times do |i| # TODO: convert to while loop for performance: i = -1; while (i += 1) < size
+  i = -1
+  while (i += 1) < size
     return true if array.data[i]
   end
   false
@@ -758,7 +760,8 @@ end
 # All - returns true if all elements are truthy
 def ops_all(array)
   size = array.shape.reduce(1, :*)
-  size.times do |i| # TODO: convert to while loop for performance: i = -1; while (i += 1) < size
+  i = -1
+  while (i += 1) < size
     return false unless array.data[i]
   end
   true
@@ -768,7 +771,8 @@ end
 def ops_sum(array)
   s = 0
   size = array.shape.reduce(1, :*)
-  size.times do |i| # TODO: convert to while loop for performance: i = -1; while (i += 1) < size
+  i = -1
+  while (i += 1) < size
     s += array.data[i]
   end
   s
@@ -778,7 +782,8 @@ end
 def ops_prod(array)
   s = 1
   size = array.shape.reduce(1, :*)
-  size.times do |i| # TODO: convert to while loop for performance: i = -1; while (i += 1) < size
+  i = -1
+  while (i += 1) < size
     s *= array.data[i]
   end
   s
@@ -788,7 +793,8 @@ end
 def ops_norm2squared(array)
   s = 0
   size = array.shape.reduce(1, :*)
-  size.times do |i| # TODO: convert to while loop for performance: i = -1; while (i += 1) < size
+  i = -1
+  while (i += 1) < size
     a = array.data[i]
     s += a * a
   end
@@ -804,7 +810,8 @@ end
 def ops_norminf(array)
   s = 0
   size = array.shape.reduce(1, :*)
-  size.times do |i| # TODO: convert to while loop for performance: i = -1; while (i += 1) < size
+  i = -1
+  while (i += 1) < size
     a = array.data[i]
     if -a > s
       s = -a
@@ -819,7 +826,8 @@ end
 def ops_norm1(array)
   s = 0
   size = array.shape.reduce(1, :*)
-  size.times do |i| # TODO: convert to while loop for performance: i = -1; while (i += 1) < size
+  i = -1
+  while (i += 1) < size
     a = array.data[i]
     s += (a < 0 ? -a : a)
   end
@@ -830,7 +838,8 @@ end
 def ops_sup(array)
   h = -Float::INFINITY
   size = array.shape.reduce(1, :*)
-  size.times do |i| # TODO: convert to while loop for performance: i = -1; while (i += 1) < size
+  i = -1
+  while (i += 1) < size
     h = array.data[i] if array.data[i] > h
   end
   h
@@ -840,7 +849,8 @@ end
 def ops_inf(array)
   h = Float::INFINITY
   size = array.shape.reduce(1, :*)
-  size.times do |i| # TODO: convert to while loop for performance: i = -1; while (i += 1) < size
+  i = -1
+  while (i += 1) < size
     h = array.data[i] if array.data[i] < h
   end
   h
@@ -856,7 +866,8 @@ def ops_argmin(array)
   size = array.shape.reduce(1, :*)
   min_idx = 0
 
-  size.times do |i| # TODO: convert to while loop for performance: i = -1; while (i += 1) < size
+  i = -1
+  while (i += 1) < size
     if array.data[i] < v
       v = array.data[i]
       min_idx = i
@@ -866,7 +877,8 @@ def ops_argmin(array)
   # Convert linear index to multi-dimensional index
   idx = []
   remaining = min_idx
-  (array.shape.length - 1).downto(0) do |d|
+  d = array.shape.length
+  while (d -= 1) >= 0
     stride = array.shape[(d+1)..-1]&.reduce(1, :*) || 1
     idx_d = remaining / stride
     idx.unshift(idx_d)
@@ -886,7 +898,8 @@ def ops_argmax(array)
   size = array.shape.reduce(1, :*)
   max_idx = 0
 
-  size.times do |i| # TODO: convert to while loop for performance: i = -1; while (i += 1) < size
+  i = -1
+  while (i += 1) < size
     if array.data[i] > v
       v = array.data[i]
       max_idx = i
@@ -896,7 +909,8 @@ def ops_argmax(array)
   # Convert linear index to multi-dimensional index
   idx = []
   remaining = max_idx
-  (array.shape.length - 1).downto(0) do |d|
+  d = array.shape.length
+  while (d -= 1) >= 0
     stride = array.shape[(d+1)..-1]&.reduce(1, :*) || 1
     idx_d = remaining / stride
     idx.unshift(idx_d)

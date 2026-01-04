@@ -17,7 +17,8 @@ class NDArray
       sz = 1
 
       stride = Array.new(@dimension)
-      (@dimension - 1).downto(0) do |i|
+      i = @dimension
+      while (i -= 1) >= 0
         stride[i] = sz
         sz *= @shape[i]
       end
@@ -28,7 +29,8 @@ class NDArray
     @offset = offset || begin
       offset = 0
 
-      @dimension.times do |i|
+      i = -1
+      while (i += 1) < @dimension
         offset -= (shape[i] - 1) * stride[i] if stride[i] < 0
       end
 
@@ -45,7 +47,8 @@ class NDArray
       sz = 1
 
       str = Array.new(@dimension)
-      (@dimension - 1).downto(0) do |i|
+      i = @dimension
+      while (i -= 1) >= 0
         str[i] = sz
         sz *= @shape[i]
       end
@@ -68,7 +71,8 @@ class NDArray
     str = @stride.dup
     ost = @offset
 
-    @dimension.times do |i| # TODO: convert to while loop for performance: i = -1; while (i += 1) < @dimension
+    i = -1
+    while (i += 1) < @dimension
       if pos[i].is_a?(Integer)
         d = pos[i]
         if d < 0
@@ -87,7 +91,8 @@ class NDArray
   def transpose(*pos)
     shp = []
     str = []
-    @dimension.times do |i| # TODO: convert to while loop for performance: i = -1; while (i += 1) < @dimension
+    i = -1
+    while (i += 1) < @dimension
       d = pos[i].is_a?(Integer) ? pos[i] : i
       shp[i] = @shape[d]
       str[i] = @stride[d]
@@ -118,9 +123,19 @@ class NDArray
     if @dimension == 0
       get
     elsif @dimension == 1
-      @shape[0].times.map { |i| get(i) } # TODO: convert to while loop for performance
+      result = []
+      i = -1
+      while (i += 1) < @shape[0]
+        result.push(get(i))
+      end
+      result
     else
-      @shape[0].times.map { |i| pick(i).to_a } # TODO: convert to while loop for performance
+      result = []
+      i = -1
+      while (i += 1) < @shape[0]
+        result.push(pick(i).to_a)
+      end
+      result
     end
   end
 
@@ -131,9 +146,15 @@ class NDArray
   end
 
   def hi(*pos)
+    shp = []
+    i = -1
+    while (i += 1) < @dimension
+      shp.push((pos[i].is_a?(Integer) && pos[i] >= 0) ? pos[i] : @shape[i])
+    end
+
     NDArray.new(
       @data,
-      @dimension.times.map { |i| (pos[i].is_a?(Integer) && pos[i] >= 0) ? pos[i] : @shape[i] }, # TODO: convert to while loop for performance
+      shp,
       @stride,
       @offset
     )
@@ -144,7 +165,8 @@ class NDArray
     ost = @offset
     d = 0
 
-    @dimension.times do |i| # TODO: convert to while loop for performance: i = -1; while (i += 1) < @dimension
+    i = -1
+    while (i += 1) < @dimension
       if pos[i].is_a?(Integer) && pos[i] >= 0
         d = pos[i]
         ost += @stride[i] * d
@@ -162,7 +184,8 @@ class NDArray
     str = []
     ost = @offset
 
-    @dimension.times do |i| # TODO: convert to while loop for performance: i = -1; while (i += 1) < @dimension
+    i = -1
+    while (i += 1) < @dimension
       if pos[i].is_a?(Integer) && pos[i] >= 0
         ost = (ost + @stride[i] * pos[i])
       else

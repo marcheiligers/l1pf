@@ -60,16 +60,21 @@ def createGeometry(grid) # TODO: rename to create_geometry (snake_case conventio
   loops = getContours(grid.transpose(1,0), false)
 
   # Extract corners
-  corners = [] # TODO: Extract locals and change to while loop
-  loops.length.times do |k| # TODO: convert to while loop for performance: l = loops.length; k = -1; while (k += 1) < l
+  corners = []
+  l = loops.length
+  k = -1
+  while (k += 1) < l
     polygon = loops[k]
-    polygon.length.times do |i| # TODO: convert to while loop for performance: pl = polygon.length; i = -1; while (i += 1) < pl
-      a = polygon[(i+polygon.length-1)%polygon.length]
+    pl = polygon.length
+    i = -1
+    while (i += 1) < pl
+      a = polygon[(i+pl-1)%pl]
       b = polygon[i]
-      c = polygon[(i+1)%polygon.length]
+      c = polygon[(i+1)%pl]
       if orient(a, b, c) > 0
         offset = [0,0]
-        2.times do |j| # TODO: convert to while loop for performance: j = -1; while (j += 1) < 2
+        j = -1
+        while (j += 1) < 2
           # Calculate direction from adjacent vertices
           if b[j] - a[j] != 0
             offset[j] = b[j] - a[j]

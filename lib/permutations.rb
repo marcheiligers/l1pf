@@ -3,7 +3,9 @@ module Permutations
 
   def self.invert(pi, result = nil)
     result = result || Array.new(pi.length)
-    pi.length.times do |i| # TODO: convert to while loop for performance: l = pi.length; i = -1; while (i += 1) < l
+    l = pi.length
+    i = -1
+    while (i += 1) < l
       result[pi[i]] = i
     end
     result

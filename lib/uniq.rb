@@ -22,7 +22,8 @@ def uniq(list, compare = nil) # TODO: does Ruby's standard library uniq handle t
     a = list[0]
     b = list[0]
 
-    (1...len).each do |i| # TODO: convert to while loop for performance: i = 0; while (i += 1) < len
+    i = 0
+    while (i += 1) < len
       b = a
       a = list[i]
       # In Ruby, 0 is truthy, so check for non-zero explicitly
@@ -47,7 +48,8 @@ def uniq(list, compare = nil) # TODO: does Ruby's standard library uniq handle t
     a = list[0]
     b = list[0]
 
-    (1...len).each do |i| # TODO: convert to while loop for performance: i = 0; while (i += 1) < len
+    i = 0
+    while (i += 1) < len
       b = a
       a = list[i]
       if a != b  # If different

@@ -13,7 +13,9 @@ def heuristic(tdist, tx, ty, node)
   ny = node.y.to_i
   pi = (nx - tx).abs + (ny - ty).abs
   ndist = node.landmark
-  NUM_LANDMARKS.times do |i| # TODO: convert to while loop for performance: l = NUM_LANDMARKS; i = -1; while (i += 1) < l
+  l = NUM_LANDMARKS
+  i = -1
+  while (i += 1) < l
     pi = [pi, tdist[i] - ndist[i]].max
   end
   1.0000009536743164 * pi # TODO: this magic number seems very specific. what is it?
@@ -79,7 +81,9 @@ class Graph
       d = (v.x - @dst_x).abs + (v.y - @dst_y).abs
       vdist = v.landmark
       tdist = @landmark_dist
-      NUM_LANDMARKS.times do |i| # TODO: convert to while loop for performance: l = NUM_LANDMARKS; i = -1; while (i += 1) < l
+      l = NUM_LANDMARKS
+      i = -1
+      while (i += 1) < l
         tdist[i] = [tdist[i], vdist[i] + d].min
       end
     end
@@ -109,12 +113,14 @@ class Graph
   def find_components
     verts = @verts
     n = verts.length
-    n.times do |i| # TODO: convert to while loop for performance: i = -1; while (i += 1) < n
+    i = -1
+    while (i += 1) < n
       verts[i].component = -1
     end
 
     components = []
-    n.times do |i| # TODO: convert to while loop for performance: i = -1; while (i += 1) < n
+    i = -1
+    while (i += 1) < n
       root = verts[i]
       next if root.component >= 0
 
@@ -127,7 +133,9 @@ class Graph
         v = to_visit[ptr]
         ptr += 1
         adj = v.edges
-        adj.length.times do |j| # TODO: convert to while loop for performance: l = adj.length; j = -1; while (j += 1) < l
+        l = adj.length
+        j = -1
+        while (j += 1) < l
           u = adj[j]
           next if u.component >= 0
           u.component = label
@@ -151,7 +159,9 @@ class Graph
 
     v = component[component.length >> 1] # TODO: bitwise shift for division by 2 - is this the idiomatic Ruby way?
 
-    NUM_LANDMARKS.times do |k| # TODO: convert to while loop for performance: l = NUM_LANDMARKS; k = -1; while (k += 1) < l
+    l = NUM_LANDMARKS
+    k = -1
+    while (k += 1) < l
       v.weight = 0.0
       @landmarks.push(v)
 
@@ -163,7 +173,9 @@ class Graph
         w = v.weight
         adj = v.edges
 
-        adj.length.times do |i| # TODO: convert to while loop for performance: l = adj.length; i = -1; while (i += 1) < l
+        al = adj.length
+        i = -1
+        while (i += 1) < al
           u = adj[i]
           next if u.state == 2
 
@@ -180,12 +192,15 @@ class Graph
       end
 
       farthest_d = 0
-      component.length.times do |i| # TODO: convert to while loop for performance: l = component.length; i = -1; while (i += 1) < l
+      cl = component.length
+      i = -1
+      while (i += 1) < cl
         u = component[i]
         u.state = 0
         u.landmark[k] = u.weight
         s = INFINITY
-        k.times do |j| # TODO: convert to while loop for performance: j = -1; while (j += 1) < k
+        j = -1
+        while (j += 1) < k
           s = [s, u.landmark[j]].min
         end
         if s > farthest_d
@@ -240,7 +255,8 @@ class Graph
 
         adj = node.edges
         n   = adj.length
-        n.times do |i| # TODO: convert to while loop for performance: i = -1; while (i += 1) < n
+        i = -1
+        while (i += 1) < n
           v = adj[i]
           state = v.state
           next if state == 4
@@ -275,7 +291,9 @@ class Graph
     @last_s = @last_t = nil
 
     # Reset landmark distance
-    NUM_LANDMARKS.times do |i| # TODO: convert to while loop for performance: l = NUM_LANDMARKS; i = -1; while (i += 1) < l
+    l = NUM_LANDMARKS
+    i = -1
+    while (i += 1) < l
       tdist[i] = INFINITY
     end
 

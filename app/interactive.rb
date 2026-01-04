@@ -17,8 +17,8 @@ require 'lib/geometry'
 require 'lib/planner'
 
 # Interactive L1 Pathfinding Demo
-GRID_SIZE = 64
-CELL_SIZE = 10
+GRID_SIZE = 32
+CELL_SIZE = 20
 GRID_OFFSET_X = 40
 GRID_OFFSET_Y = 40
 
