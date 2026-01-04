@@ -126,36 +126,40 @@ class Vertex
     end
 
     def pop(root) # takeMin
+      # Cache NIL to avoid repeated constant lookup
+      nil_node = NIL
+
+      # Get left child and update root
       p = root.left
-      root.left = NIL
+      root.left = nil_node
       root = p
 
       loop do
         q = root.right
-        break if q == NIL
+        break if q == nil_node
 
         p = root
         r = q.right
-        s = merge(p, q)
-        root = s
+        root = merge(p, q)
+        s = root
 
         loop do
           p = r
           q = r.right
-          break if q == NIL
+          break if q == nil_node
 
           r = q.right
           s = s.right = merge(p, q)
         end
 
-        s.right = NIL
-        if p != NIL
+        s.right = nil_node
+        if p != nil_node
           p.right = root
           root = p
         end
       end
 
-      root.parent = NIL
+      root.parent = nil_node
       root
     end
   end
