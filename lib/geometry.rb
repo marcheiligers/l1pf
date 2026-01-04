@@ -16,6 +16,8 @@ class PathGeometry
   def initialize(corners, grid)
     @corners = corners
     @grid    = grid
+    @max_x   = grid.shape[0] - 1
+    @max_y   = grid.shape[1] - 1
   end
 
   def stabRay(vx, vy, x) # TODO: rename to stab_ray (snake_case convention)
@@ -41,7 +43,23 @@ class PathGeometry
     hix = ax.greater(bx)
     hiy = ay.greater(by)
 
-    integrate(lox - 1, loy - 1) - integrate(lox - 1, hiy) - integrate(hix, loy - 1) + integrate(hix, hiy) > 0
+    # Inline integrate() to avoid method call overhead
+    lox1 = lox - 1
+    loy1 = loy - 1
+
+    # integrate(lox - 1, loy - 1)
+    v1 = (lox1 < 0 || loy1 < 0) ? 0 : @grid.get(lox1.lesser(@max_x), loy1.lesser(@max_y))
+
+    # integrate(lox - 1, hiy)
+    v2 = (lox1 < 0 || hiy < 0) ? 0 : @grid.get(lox1.lesser(@max_x), hiy.lesser(@max_y))
+
+    # integrate(hix, loy - 1)
+    v3 = (hix < 0 || loy1 < 0) ? 0 : @grid.get(hix.lesser(@max_x), loy1.lesser(@max_y))
+
+    # integrate(hix, hiy)
+    v4 = (hix < 0 || hiy < 0) ? 0 : @grid.get(hix.lesser(@max_x), hiy.lesser(@max_y))
+
+    v1 - v2 - v3 + v4 > 0
   end
 end
 
