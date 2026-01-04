@@ -4,3 +4,4 @@ exceptions/
 errors/
 .DS_Store
 js/
+extract_todos.sh

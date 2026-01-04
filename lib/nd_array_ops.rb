@@ -1,7 +1,10 @@
 # NDArray operations - Ruby translation of ndarray-ops
 # Translated from: https://github.com/scijs/ndarray-ops
 
+# TODO: namespace pollution - all ops_* functions should be wrapped in NDArrayOps module or added as methods to NDArray class
+
 # Helper to iterate over ndarray elements
+# TODO: namespace pollution - make this private/internal to the module
 def ndarray_iterate(arrays)
   # Get the first array to determine iteration count
   arr = arrays[0]

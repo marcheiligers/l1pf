@@ -118,9 +118,9 @@ class NDArray
     if @dimension == 0
       get
     elsif @dimension == 1
-      @shape[0].times.map { |i| get(i) }
+      @shape[0].times.map { |i| get(i) } # TODO: convert to while loop for performance
     else
-      @shape[0].times.map { |i| pick(i).to_a }
+      @shape[0].times.map { |i| pick(i).to_a } # TODO: convert to while loop for performance
     end
   end
 

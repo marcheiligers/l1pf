@@ -4,11 +4,13 @@
 # var createGeometry = require('./geometry')
 # var Graph = require('./graph')
 
+# TODO: namespace pollution - these constants should be namespaced (e.g., as class constants in PlannerBuilder)
 LEAF_CUTOFF = 64
 BUCKET_SIZE = 32
 
 # module.exports = createPlanner
 
+# TODO: namespace pollution - classes should be nested in a module (e.g., Planner::Leaf)
 class Leaf
   attr_accessor :verts, :leaf
 
@@ -18,6 +20,7 @@ class Leaf
   end
 end
 
+# TODO: namespace pollution - Struct definitions should be namespaced or nested in a module
 Bucket = Struct.new(:y0, :y1, :top, :bottom, :left, :right, :on)
 
 Node = Struct.new(:x, :buckets, :left, :right)
@@ -47,15 +50,15 @@ class PlannerBuilder
 
 private
 
-  def makeVertex(pair)
+  def makeVertex(pair) # TODO: rename to make_vertex (snake_case convention)
     return nil unless pair
     return @verts[pair] if @verts[pair]
 
     @verts[pair] = @graph.vertex(pair[0], pair[1])
   end
 
-  def makeLeaf(corners, x0, x1)
-    localVerts = []
+  def makeLeaf(corners, x0, x1) # TODO: rename to make_leaf (snake_case convention)
+    localVerts = [] # TODO: rename to local_verts (snake_case convention)
     corners.length.times do |i| # TODO: convert to while loop for performance: l = corners.length; i = -1; while (i += 1) < l
       u = corners[i]
       ux = @graph.vertex(u[0], u[1])
@@ -70,7 +73,7 @@ private
     Leaf.new(localVerts)
   end
 
-  def makeBucket(corners, x)
+  def makeBucket(corners, x) # TODO: rename to make_bucket (snake_case convention)
     # Split visible corners into 3 cases
     left  = []
     right = []
@@ -87,8 +90,8 @@ private
 
     y0 = corners[0][1]
     y1 = corners[corners.length-1][1]
-    loSteiner = add_steiner(x, on, y0, true)
-    hiSteiner = add_steiner(x, on, y1, false)
+    loSteiner = add_steiner(x, on, y0, true) # TODO: rename to lo_steiner (snake_case convention)
+    hiSteiner = add_steiner(x, on, y1, false) # TODO: rename to hi_steiner (snake_case convention)
 
     bipartite(left, right)
     bipartite(on, left)
@@ -142,14 +145,14 @@ private
     end
   end
 
-  def comparePair(a, b)
+  def comparePair(a, b) # TODO: rename to compare_pair (snake_case convention)
     d = a[1] - b[1]
     return d unless d == 0
 
     a[0] - b[0]
   end
 
-  def makePartition(x, corners)
+  def makePartition(x, corners) # TODO: rename to make_partition (snake_case convention)
     left  = []
     right = []
     on    = []
@@ -212,7 +215,7 @@ private
     }
   end
 
-  def makeTree(corners, x0, x1)
+  def makeTree(corners, x0, x1) # TODO: rename to make_tree (snake_case convention)
     return nil if corners.length == 0
     return makeLeaf(corners, x0, x1) if corners.length < LEAF_CUTOFF
 
@@ -229,7 +232,7 @@ private
     # Build buckets
     vis = partition[:vis]
     buckets = []
-    lastSteiner = nil
+    lastSteiner = nil # TODO: rename to last_steiner (snake_case convention)
     i = 0
     while i < vis.length # TODO: already using while loop - good!
       v0 = i
@@ -311,11 +314,11 @@ class L1PathPlanner
 
 private
 
-  def compareBucket(bucket, y)
+  def compareBucket(bucket, y) # TODO: rename to compare_bucket (snake_case convention)
     bucket.y0 - y
   end
 
-  def connectList(nodes, geom, graph, target, x, y)
+  def connectList(nodes, geom, graph, target, x, y) # TODO: rename to connect_list (snake_case convention)
     nodes.length.times do |i| # TODO: convert to while loop for performance: l = nodes.length; i = -1; while (i += 1) < l
       v = nodes[i]
       if !geom.stabBox(v.x, v.y, x, y)
@@ -328,7 +331,7 @@ private
     end
   end
 
-  def connectNodes(geom, graph, node, target, x, y)
+  def connectNodes(geom, graph, node, target, x, y) # TODO: rename to connect_nodes (snake_case convention)
     # Mark target nodes
     while node
       # Check leaf case
@@ -406,7 +409,8 @@ private
   end
 end
 
-def createPlanner(grid)
+# TODO: namespace pollution - this is the main export, should be in a module (e.g., Planner.create or L1PathPlanner.create)
+def createPlanner(grid) # TODO: rename to create_planner (snake_case convention)
   builder = PlannerBuilder.new(grid)
   builder.build
 end

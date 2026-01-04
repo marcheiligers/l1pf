@@ -7,6 +7,7 @@
 # var NUM_LANDMARKS = vtx.NUM_LANDMARKS
 # var LANDMARK_DIST = vtx.LANDMARK_DIST
 
+# TODO: namespace pollution - wrap in module or make this a class method of Graph
 def heuristic(tdist, tx, ty, node)
   nx = node.x.to_i
   ny = node.y.to_i

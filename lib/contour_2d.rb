@@ -2,6 +2,9 @@
 
 # module.exports = getContours
 
+# TODO: namespace pollution - all functions below should be wrapped in a Contour2D module
+
+# TODO: namespace pollution - class should be nested in a module (e.g., Contour2D::Segment)
 class Segment
   attr_accessor :start, :end, :direction, :height, :visited, :next, :prev
 
@@ -16,9 +19,11 @@ class Segment
   end
 end
 
+# TODO: namespace pollution - Struct definition should be namespaced or nested in a module
 ContourVertex = Struct.new(:x, :y, :segment, :orientation)
 
-def getParallelCountours(array, direction)
+# TODO: namespace pollution - make this private/internal to the module
+def getParallelCountours(array, direction) # TODO: rename to get_parallel_contours (snake_case convention; also fix typo: Countours -> Contours)
   n = array.shape[0]
   m = array.shape[1]
   contours = []
@@ -99,7 +104,8 @@ def getParallelCountours(array, direction)
   contours
 end
 
-def getVertices(contours)
+# TODO: namespace pollution - make this private/internal to the module
+def getVertices(contours) # TODO: rename to get_vertices (snake_case convention)
   vertices = Array.new(contours.length * 2)
   contours.length.times do |i| # TODO: convert to while loop for performance: l = contours.length; i = -1; while (i += 1) < l
     h = contours[i]
@@ -115,6 +121,7 @@ def getVertices(contours)
   vertices
 end
 
+# TODO: namespace pollution - make this private/internal to the module
 def walk(v, clockwise)
   result = []
 
@@ -137,7 +144,8 @@ def walk(v, clockwise)
   result
 end
 
-def compareVertex(a, b)
+# TODO: namespace pollution - make this private/internal to the module
+def compareVertex(a, b) # TODO: rename to compare_vertex (snake_case convention)
   d = a.x - b.x
   return d unless d == 0
 
@@ -147,8 +155,8 @@ def compareVertex(a, b)
   a.orientation - b.orientation
 end
 
-
-def getContours(array, clockwise)
+# TODO: namespace pollution - this is the main export, should be in a module (e.g., Contour2D.get_contours)
+def getContours(array, clockwise) # TODO: rename to get_contours (snake_case convention)
   clockwise = !!clockwise # TODO: is !! the idiomatic Ruby way to convert to boolean?
 
   # First extract horizontal contours and vertices

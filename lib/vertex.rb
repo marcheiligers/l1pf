@@ -1,3 +1,4 @@
+# TODO: namespace pollution - these constants should be namespaced (e.g., Vertex::NUM_LANDMARKS)
 NUM_LANDMARKS = 16
 
 INFINITY = Float::INFINITY

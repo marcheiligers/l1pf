@@ -9,6 +9,7 @@
 
 # module.exports = createGeometry
 
+# TODO: namespace pollution - class should be nested in a module (e.g., Geometry::PathGeometry)
 class PathGeometry
   attr_reader :corners, :grid
 
@@ -17,11 +18,11 @@ class PathGeometry
     @grid    = grid
   end
 
-  def stabRay(vx, vy, x)
+  def stabRay(vx, vy, x) # TODO: rename to stab_ray (snake_case convention)
     stabBox(vx, vy, x, vy)
   end
 
-  def stabTile(x, y)
+  def stabTile(x, y) # TODO: rename to stab_tile (snake_case convention)
     stabBox(x, y, x, y)
   end
 
@@ -34,7 +35,7 @@ class PathGeometry
     )
   end
 
-  def stabBox(ax, ay, bx, by)
+  def stabBox(ax, ay, bx, by) # TODO: rename to stab_box (snake_case convention)
     lox = [ax, bx].min
     loy = [ay, by].min
     hix = [ax, bx].max
@@ -46,14 +47,16 @@ class PathGeometry
   end
 end
 
-def comparePair(a, b) # TODO: is this basically saying return a == b?
+# TODO: namespace pollution - wrap in module or make this a private helper
+def comparePair(a, b) # TODO: rename to compare_pair (snake_case convention); is this basically saying return a == b?
   d = a[0] - b[0]
   return d unless d.zero?
 
   a[1] - b[1]
 end
 
-def createGeometry(grid)
+# TODO: namespace pollution - this is the main export, should be in a module (e.g., Geometry.create or Geometry::create_geometry)
+def createGeometry(grid) # TODO: rename to create_geometry (snake_case convention)
   loops = getContours(grid.transpose(1,0), false)
 
   # Extract corners

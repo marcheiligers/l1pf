@@ -7,6 +7,7 @@
 #
 # Returns: array with duplicates removed (modifies input array)
 
+# TODO: namespace pollution - wrap in a module (e.g., ArrayUtils.uniq)
 def uniq(list, compare = nil) # TODO: does Ruby's standard library uniq handle this? and is it faster?
   return list if list.length == 0
 

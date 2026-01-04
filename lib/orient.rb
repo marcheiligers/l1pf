@@ -9,6 +9,7 @@
 # Formula from robust-orientation orientation3:
 #   (a[1] - c[1]) * (b[0] - c[0]) - (a[0] - c[0]) * (b[1] - c[1])
 #
+# TODO: namespace pollution - wrap in a module (e.g., Geometry.orient or RobustOrientation.orient)
 def orient(a, b, c)
   l = (a[1] - c[1]) * (b[0] - c[0])
   r = (a[0] - c[0]) * (b[1] - c[1])
