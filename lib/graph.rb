@@ -15,7 +15,7 @@ def heuristic(tdist, tx, ty, node)
   NUM_LANDMARKS.times do |i|
     pi = [pi, tdist[i] - ndist[i]].max
   end
-  1.0000009536743164 * pi
+  1.0000009536743164 * pi # TODO: this magic number seems very specific. what is it?
 end
 
 class Graph
@@ -23,7 +23,7 @@ class Graph
               :src_x, :src_y, :dst_x, :dst_y, :landmarks, :landmark_dist
 
   def initialize
-    @target   = Vertex.create(0, 0)
+    @target   = Vertex.create(0, 0) # TODO: why does Vertex have a create method?
     @verts    = []
     @free_list = @target
     @to_visit  = Vertex::NIL

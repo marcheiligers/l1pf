@@ -7,7 +7,7 @@
 #
 # Returns: array with duplicates removed (modifies input array)
 
-def uniq(list, compare = nil)
+def uniq(list, compare = nil) # TODO: does Ruby's standard library uniq handle this? and is it faster?
   return list if list.length == 0
 
   if compare

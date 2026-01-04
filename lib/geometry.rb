@@ -46,7 +46,7 @@ class PathGeometry
   end
 end
 
-def comparePair(a, b)
+def comparePair(a, b) # TODO: is this basically saying return a == b?
   d = a[0] - b[0]
   return d unless d.zero?
 
@@ -57,7 +57,7 @@ def createGeometry(grid)
   loops = getContours(grid.transpose(1,0), false)
 
   # Extract corners
-  corners = []
+  corners = [] # TODO: Extract locals and change to while loop
   loops.length.times do |k|
     polygon = loops[k]
     polygon.length.times do |i|
