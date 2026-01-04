@@ -17,8 +17,18 @@ require 'lib/geometry'
 require 'lib/planner'
 
 # Interactive L1 Pathfinding Demo
-GRID_SIZE = 128
+# GRID_SIZE = 33
+# CELL_SIZE = 20
+
+# GRID_SIZE = 65
+# CELL_SIZE = 10
+
+GRID_SIZE = 129
 CELL_SIZE = 5
+
+# GRID_SIZE = 255
+# CELL_SIZE = 2
+
 GRID_OFFSET_X = 40
 GRID_OFFSET_Y = 40
 
@@ -47,11 +57,12 @@ def init_demo(args)
   args.state.grid_data = generate_maze(GRID_SIZE, GRID_SIZE)
   args.state.grid = NDArray.new(args.state.grid_data, [GRID_SIZE, GRID_SIZE])
 
-  # Set start and end points
+  # Set start and end points (must be odd coordinates for maze connectivity)
   args.state.start_x = 1
   args.state.start_y = 1
-  args.state.end_x = GRID_SIZE - 2
-  args.state.end_y = GRID_SIZE - 2
+  # Use GRID_SIZE - 3 to ensure odd coordinate (since GRID_SIZE is typically even)
+  args.state.end_x = GRID_SIZE.even? ? GRID_SIZE - 3 : GRID_SIZE - 2
+  args.state.end_y = GRID_SIZE.even? ? GRID_SIZE - 3 : GRID_SIZE - 2
 
   # Clear start and end positions
   args.state.grid_data[args.state.start_y * GRID_SIZE + args.state.start_x] = 0
@@ -67,46 +78,31 @@ def init_demo(args)
   args.state.needs_planner_update = false
 end
 
-def carve_chamber(grid, width, x, y, w, h)
-  return if w < 2 || h < 2
+def carve_path(grid, width, height, x, y, visited)
+  # Mark as visited and carve
+  visited[y * width + x] = true
+  grid[y * width + x] = 0
 
-  # Carve out the chamber
-  (y...(y+h)).each do |cy|
-    (x...(x+w)).each do |cx|
-      grid[cy * width + cx] = 0
-    end
-  end
+  # Define possible directions (up, right, down, left)
+  directions = [[0, -1], [1, 0], [0, 1], [-1, 0]]
 
-  # Choose random division points
-  if w > h
-    # Divide vertically
-    if w > 3
-      div_x = x + 1 + rand(w - 2)
-      gap_y = y + rand(h)
+  # Shuffle directions for randomness
+  directions.shuffle!
 
-      # Create wall
-      (y...(y+h)).each do |cy|
-        grid[cy * width + div_x] = 1 unless cy == gap_y
-      end
+  directions.each do |dx, dy|
+    # Calculate neighbor position (2 steps away to account for walls)
+    nx = x + dx * 2
+    ny = y + dy * 2
 
-      # Recurse
-      carve_chamber(grid, width, x, y, div_x - x, h)
-      carve_chamber(grid, width, div_x + 1, y, x + w - div_x - 1, h)
-    end
-  else
-    # Divide horizontally
-    if h > 3
-      div_y = y + 1 + rand(h - 2)
-      gap_x = x + rand(w)
+    # Check if neighbor is valid and unvisited
+    if nx > 0 && nx < width - 1 && ny > 0 && ny < height - 1 && !visited[ny * width + nx]
+      # Carve the wall between current and neighbor
+      wall_x = x + dx
+      wall_y = y + dy
+      grid[wall_y * width + wall_x] = 0
 
-      # Create wall
-      (x...(x+w)).each do |cx|
-        grid[div_y * width + cx] = 1 unless cx == gap_x
-      end
-
-      # Recurse
-      carve_chamber(grid, width, x, y, w, div_y - y)
-      carve_chamber(grid, width, x, div_y + 1, w, y + h - div_y - 1)
+      # Recursively carve from neighbor
+      carve_path(grid, width, height, nx, ny, visited)
     end
   end
 end
@@ -114,9 +110,11 @@ end
 def generate_maze(width, height)
   # Start with all walls
   grid = Array.new(width * height, 1)
+  visited = Array.new(width * height, false)
 
-  # Generate maze with border
-  carve_chamber(grid, width, 1, 1, width - 2, height - 2)
+  # Generate maze using recursive backtracking from (1,1)
+  # This ensures all cells are connected
+  carve_path(grid, width, height, 1, 1, visited)
 
   grid
 end
@@ -252,6 +250,7 @@ end
 WALL_COLOR = { r: 200, g: 200, b: 210 }
 FLOOR_COLOR = { r: 40, g: 40, b: 50 }
 BG_COLOR = { r: 20, g: 20, b: 30 }
+PATH_COLOR = { r: 100, g: 200, b: 255, a: 255 }
 
 def render(args)
   args.outputs.background_color = BG_COLOR
@@ -267,8 +266,9 @@ def render(args)
       idx = y * GRID_SIZE + x
       is_wall = args.state.grid_data[idx] == 1
 
-      color = is_wall ? WALL_COLOR : FLOOR_COLOR
-      args.outputs.solids << { x: cell_x, y: cell_y, w: CELL_SIZE, h: CELL_SIZE, **color }
+      next unless is_wall
+
+      args.outputs.solids << { x: cell_x, y: cell_y, w: CELL_SIZE, h: CELL_SIZE, **WALL_COLOR }
     end
   end
 
@@ -283,7 +283,7 @@ def render(args)
       x2 = GRID_OFFSET_X + args.state.path[i + 3] * CELL_SIZE + CELL_SIZE / 2
       y2 = GRID_OFFSET_Y + args.state.path[i + 2] * CELL_SIZE + CELL_SIZE / 2
 
-      args.outputs.lines << [x1, y1, x2, y2, 100, 200, 255, 255]
+      args.outputs.lines << { x: x1, y: y1, x2: x2, y2: y2, **PATH_COLOR }
       i += 2
     end
 
@@ -293,7 +293,7 @@ def render(args)
       x = GRID_OFFSET_X + args.state.path[i + 1] * CELL_SIZE + CELL_SIZE / 2
       y = GRID_OFFSET_Y + args.state.path[i] * CELL_SIZE + CELL_SIZE / 2
 
-      args.outputs.solids << [x - 3, y - 3, 6, 6, 100, 200, 255]
+      args.outputs.solids << { x: x - 2, y: y - 2, w: 4, h: 4, **PATH_COLOR }
       i += 2
     end
   end

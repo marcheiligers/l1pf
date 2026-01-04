@@ -30,16 +30,22 @@ class PathGeometry
     return 0 if x < 0 || y < 0
 
     return @grid.get(
-      [x, @grid.shape[0]-1].min.to_i,
-      [y, @grid.shape[1]-1].min.to_i
+      # [x, @grid.shape[0]-1].min.to_i,
+      # [y, @grid.shape[1]-1].min.to_i
+      x.lesser(@grid.shape[0]-1),
+      y.lesser(@grid.shape[1]-1)
     )
   end
 
   def stabBox(ax, ay, bx, by) # TODO: rename to stab_box (snake_case convention)
-    lox = [ax, bx].min
-    loy = [ay, by].min
-    hix = [ax, bx].max
-    hiy = [ay, by].max
+    # lox = [ax, bx].min
+    # loy = [ay, by].min
+    # hix = [ax, bx].max
+    # hiy = [ay, by].max
+    lox = ax.lesser(bx)
+    loy = ay.lesser(by)
+    hix = ax.greater(bx)
+    hiy = ay.greater(by)
 
     s = integrate(lox - 1, loy - 1) - integrate(lox - 1, hiy) - integrate(hix, loy - 1) + integrate(hix, hiy)
 

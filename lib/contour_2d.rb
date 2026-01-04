@@ -97,13 +97,13 @@ def getParallelCountours(array, direction) # TODO: rename to get_parallel_contou
     b = array.get(n - 1, j) != 0
     next if b == a
 
-    contours.push(Segment.new(j, x0, direction, n)) if a # TODO: is this assuming that 0 is false? ... probably ... compare to the JS
+    contours.push(Segment.new(j, x0, direction, n)) if a
     x0 = j if b
     a = b
   end
   j = m
 
-  contours.push(Segment.new(j, x0, direction, n)) if a # TODO: is this assuming that 0 is false? ... probably ... compare to the JS
+  contours.push(Segment.new(j, x0, direction, n)) if a
 
   contours
 end

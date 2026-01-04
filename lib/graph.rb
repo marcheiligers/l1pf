@@ -9,14 +9,11 @@
 
 # TODO: namespace pollution - wrap in module or make this a class method of Graph
 def heuristic(tdist, tx, ty, node)
-  nx = node.x.to_i
-  ny = node.y.to_i
-  pi = (nx - tx).abs + (ny - ty).abs
+  pi = (node.x - tx).abs + (node.y - ty).abs
   ndist = node.landmark
-  l = NUM_LANDMARKS
   i = -1
-  while (i += 1) < l
-    pi = [pi, tdist[i] - ndist[i]].max
+  while (i += 1) < NUM_LANDMARKS
+    pi = pi.greater(tdist[i] - ndist[i])
   end
   1.0000009536743164 * pi # TODO: this magic number seems very specific. what is it?
 end

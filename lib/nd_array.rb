@@ -140,9 +140,6 @@ class NDArray
   end
 
   def index(*pos)
-    # s = @offset
-    # pos[0...@dimension].each.with_index { |p, i| s += @stride[i] * p }
-    # s
     s = @offset
     i = -1
     while (i += 1) < @dimension
