@@ -185,20 +185,29 @@ end
 # ndarray = require("./ndarray.js")
 # console.log(ps.map((p) => ndarray(p, p, p).order))
 
+INVERTS = [
+  [0, 1, 2],
+  [0, 2, 1],
+  [1, 0, 2],
+  [1, 2, 0],
+  [2, 0, 1],
+  [2, 1, 0]
+].map { |perm| [perm, Permutations.invert(perm)] }
+
 ORDERS = [
-  [ 0, 1, 2 ],
-  [ 0, 2, 1 ],
-  [ 1, 0, 2 ],
-  [ 1, 2, 0 ],
-  [ 2, 0, 1 ],
-  [ 2, 1, 0 ]
+  [0, 1, 2],
+  [0, 2, 1],
+  [1, 0, 2],
+  [1, 2, 0],
+  [2, 0, 1],
+  [2, 1, 0]
 ].zip([
-  [ 0, 1, 2 ],
-  [ 0, 2, 1 ],
-  [ 1, 0, 2 ],
-  [ 2, 0, 1 ],
-  [ 1, 2, 0 ],
-  [ 2, 1, 0 ]
+  [0, 1, 2],
+  [0, 2, 1],
+  [1, 0, 2],
+  [2, 0, 1],
+  [1, 2, 0],
+  [2, 1, 0]
 ])
 
 def test_ndarray_order(_args, assert)
@@ -286,7 +295,6 @@ end
 #   t.end()
 # })
 
-
 def test_nildarray(_args, assert)
   # TODO: test other methods compared to ndarray.js
   n = NilDArray.new([1])
@@ -298,7 +306,3 @@ def test_nildarray(_args, assert)
   assert.equal!(n.order, [])
   assert.equal!(n.get, nil)
 end
-
-$gtk.reset rand(1_000_000)
-# $gtk.log_level = :off
-$gtk.tests.start

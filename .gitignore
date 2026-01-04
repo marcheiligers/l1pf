@@ -1,4 +1,6 @@
 builds/
 logs/
 exceptions/
+errors/
 .DS_Store
+js/

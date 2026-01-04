@@ -16,7 +16,6 @@ module Serializable
     end
   end
 
-
   def serialize
     serialized = {}
     ignore = self.class.serializable_ignored || SERIALIZABLE_IGNORE

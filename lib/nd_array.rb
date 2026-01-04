@@ -105,9 +105,9 @@ class NDArray
     end
   end
 
-  def +(val)
+  def +(other)
     NDArray.new(
-      @data.map { |n| n + val },
+      @data.map { |n| n + other },
       @shape.dup,
       @stride.dup,
       @offset

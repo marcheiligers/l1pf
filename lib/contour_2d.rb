@@ -2,8 +2,21 @@
 
 # module.exports = getContours
 
-Segment = Struct.new(:start, :end, :direction, :height, :visited, :next, :prev)
-# Vertex = Struct.new(:x, :y, :segment, :orientation)
+class Segment
+  attr_accessor :start, :end, :direction, :height, :visited, :next, :prev
+
+  def initialize(start_val, end_val, direction, height)
+    @start = start_val
+    @end = end_val
+    @direction = direction
+    @height = height
+    @visited = false
+    @next = nil
+    @prev = nil
+  end
+end
+
+ContourVertex = Struct.new(:x, :y, :segment, :orientation)
 
 def getParallelCountours(array, direction)
   n = array.shape[0]
@@ -16,30 +29,35 @@ def getParallelCountours(array, direction)
   c = false
   d = false
   x0 = 0
+  j = 0
 
-  m.times do |j|
-    b = !!array.get(0, j)
+  m.times do |jj|
+    j = jj
+    b = array.get(0, j) != 0
     next if b == a
 
-    contours.push(Segment.new(x0, j, direction, 0)) unless a == 0
-    x0 = j unless b == 0
+    contours.push(Segment.new(x0, j, direction, 0)) if a
+    x0 = j if b
     a = b
   end
+  j = m
 
-  contours.push(Segment.new(x0, j, direction, 0)) unless a == 0
+  contours.push(Segment.new(x0, j, direction, 0)) if a
 
   # Scan center
-  n.times do |i|
+  (1...n).each do |i|
     a = false
     b = false
     x0 = 0
-    m.times do |j|
-      c = !!array.get(i-1, j)
-      d = !!array.get(i, j)
+    j = 0
+    m.times do |jj|
+      j = jj
+      c = array.get(i-1, j) != 0
+      d = array.get(i, j) != 0
       next if c == a && d == b
 
       if a != b
-        if a != 0
+        if a
           contours.push(Segment.new(j, x0, direction, i))
         else
           contours.push(Segment.new(x0, j, direction, i))
@@ -50,9 +68,10 @@ def getParallelCountours(array, direction)
       a = c
       b = d
     end
+    j = m  # After loop, j should equal m (like JavaScript for loop)
 
     if a != b
-      if a != 0
+      if a
         contours.push(Segment.new(j, x0, direction, i))
       else
         contours.push(Segment.new(x0, j, direction, i))
@@ -63,30 +82,33 @@ def getParallelCountours(array, direction)
   # Scan bottom row
   a = false
   x0 = 0
-  m.times do |j|
-    b = !!array.get(n - 1, j)
+  j = 0
+  m.times do |jj|
+    j = jj
+    b = array.get(n - 1, j) != 0
     next if b == a
 
-    contours.push(Segment.new(j, x0, direction, n)) unless a == 0
-    x0 = j unless b == 0
+    contours.push(Segment.new(j, x0, direction, n)) if a
+    x0 = j if b
     a = b
   end
+  j = m
 
-  contours.push(Segment.new(j, x0, direction, n)) unless a == 0
+  contours.push(Segment.new(j, x0, direction, n)) if a
 
   contours
 end
 
 def getVertices(contours)
   vertices = Array.new(contours.length * 2)
-  contours.length.time do |i|
+  contours.length.times do |i|
     h = contours[i]
     if h.direction == 0
-      vertices[2 * i] = Vertex.new(h.start, h.height, h, 0)
-      vertices[2 * i + 1] = Vertex.new(h.end, h.height, h, 1)
+      vertices[2 * i] = ContourVertex.new(h.start, h.height, h, 0)
+      vertices[2 * i + 1] = ContourVertex.new(h.end, h.height, h, 1)
     else
-      vertices[2 * i] = Vertex.new(h.height, h.start, h, 0)
-      vertices[2 * i + 1] = Vertex.new(h.height, h.end, h, 1)
+      vertices[2 * i] = ContourVertex.new(h.height, h.start, h, 0)
+      vertices[2 * i + 1] = ContourVertex.new(h.height, h.end, h, 1)
     end
   end
 
@@ -132,12 +154,12 @@ def getContours(array, clockwise)
   # First extract horizontal contours and vertices
   hcontours = getParallelCountours(array, 0)
   hvertices = getVertices(hcontours)
-  hvertices.sort(compareVertex) # TODO: sort func
+  hvertices.sort! { |a, b| compareVertex(a, b) }
 
   # Extract vertical contours and vertices
   vcontours = getParallelCountours(array.transpose(1, 0), 1)
   vvertices = getVertices(vcontours)
-  vvertices.sort(compareVertex) # TODO: sort func
+  vvertices.sort! { |a, b| compareVertex(a, b) }
 
   # Glue horizontal and vertical vertices together
   hvertices.length.times do |i|

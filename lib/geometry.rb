@@ -9,7 +9,9 @@
 
 # module.exports = createGeometry
 
-class Geometry
+class PathGeometry
+  attr_reader :corners, :grid
+
   def initialize(corners, grid)
     @corners = corners
     @grid    = grid
@@ -26,17 +28,17 @@ class Geometry
   def integrate(x, y)
     return 0 if x < 0 || y < 0
 
-    return grid.get(
-      Math.min(x, @grid.shape[0]-1)|0,
-      Math.min(y, @grid.shape[1]-1)|0
+    return @grid.get(
+      [x, @grid.shape[0]-1].min.to_i,
+      [y, @grid.shape[1]-1].min.to_i
     )
   end
 
   def stabBox(ax, ay, bx, by)
-    lox = Math.min(ax, bx)
-    loy = Math.min(ay, by)
-    hix = Math.max(ax, bx)
-    hiy = Math.max(ay, by)
+    lox = [ax, bx].min
+    loy = [ay, by].min
+    hix = [ax, bx].max
+    hiy = [ay, by].max
 
     s = integrate(lox - 1, loy - 1) - integrate(lox - 1, hiy) - integrate(hix, loy - 1) + integrate(hix, hiy)
 
@@ -52,7 +54,7 @@ def comparePair(a, b)
 end
 
 def createGeometry(grid)
-  loops = getContour(grid.transpose(1,0))
+  loops = getContours(grid.transpose(1,0), false)
 
   # Extract corners
   corners = []
@@ -63,18 +65,22 @@ def createGeometry(grid)
       b = polygon[i]
       c = polygon[(i+1)%polygon.length]
       if orient(a, b, c) > 0
-        var offset = [0,0]
+        offset = [0,0]
         2.times do |j|
-          if(b[j] - a[j])
+          # Calculate direction from adjacent vertices
+          if b[j] - a[j] != 0
             offset[j] = b[j] - a[j]
           else
             offset[j] = b[j] - c[j]
           end
-          offset[j] = b[j]+Math.min(Math.round(offset[j]/Math.abs(offset[j]))|0, 0)
+          # Compute b[j] + min(sign(offset[j]), 0)
+          # This gives b[j] if offset is positive, b[j]-1 if negative
+          sign = offset[j] < 0 ? -1 : 1
+          offset[j] = b[j] + [sign, 0].min
         end
         if(offset[0] >= 0 && offset[0] < grid.shape[0] &&
            offset[1] >= 0 && offset[1] < grid.shape[1] &&
-           grid.get(offset[0], offset[1]) === 0)
+           grid.get(offset[0], offset[1]) == 0)
           corners.push(offset)
         end
       end
@@ -82,13 +88,13 @@ def createGeometry(grid)
   end
 
   # Remove duplicate corners
-  uniq(corners, comparePair)
+  corners = uniq(corners, method(:comparePair))
 
   # Create integral image
-  var img = ndarray(new Int32Array(grid.shape[0]*grid.shape[1]), grid.shape)
-  ops.gts(img, grid, 0)
-  prefixSum(img)
+  img = NDArray.new(Array.new(grid.shape[0]*grid.shape[1], 0), grid.shape)
+  ops_gts(img, grid, 0)
+  prefix_sum(img)
 
   # Return resulting geometry
-  Geometry.new(corners, img)
+  PathGeometry.new(corners, img)
 end

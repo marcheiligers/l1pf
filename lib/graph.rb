@@ -48,17 +48,17 @@ class Graph
   end
 
   def set_source_and_target(sx, sy, tx, ty)
-    @src_x = sx || 0
-    @src_y = sy || 0
-    @dst_x = tx || 0
-    @dst_y = ty || 0
+    @src_x = sx.to_i
+    @src_y = sy.to_i
+    @dst_x = tx.to_i
+    @dst_y = ty.to_i
   end
 
   # Mark vertex connected to source
   def add_s(v)
     if (v.state & 2) == 0
       v.heuristic   = heuristic(@landmark_dist, @dst_x, @dst_y, v)
-      v.weight      = Math.abs(@src_x - v.x) + Math.abs(@src_y - v.y) + v.heuristic
+      v.weight      = (@src_x - v.x).abs + (@src_y - v.y).abs + v.heuristic
       v.state       |= 2
       v.pred        = nil
       @to_visit  = Vertex.push(@to_visit, v)
@@ -70,9 +70,9 @@ class Graph
   # Mark vertex connected to target
   def add_t(v)
     if (v.state & 1) == 0
-      v.state       ||= 1
+      v.state |= 1
       @free_list = Vertex.insert(@free_list, v)
-      @last_t    = v
+      @last_t = v
 
       # Update heuristic
       d = (v.x - @dst_x).abs + (v.y - @dst_y).abs
@@ -86,22 +86,22 @@ class Graph
 
   # Retrieves the path from dst->src
   def get_path(out)
-    prevX = @dst_x
-    prevY = @dst_y
-    out.push(prevX, prevY)
+    prev_x = @dst_x
+    prev_y = @dst_y
+    out.push(prev_x, prev_y)
     head = @target.pred
 
-    while(head)
-      out.push(head.x, prevY) if prevX != head.x && prevY != head.y
-      out.push(head.x, head.y) if prevX != head.x || prevY != head.y
+    while head
+      out.push(head.x, prev_y) if prev_x != head.x && prev_y != head.y
+      out.push(head.x, head.y) if prev_x != head.x || prev_y != head.y
 
-      prevX = head.x
-      prevY = head.y
+      prev_x = head.x
+      prev_y = head.y
       head = head.pred
     end
 
-    out.push(@src_x, prevY) if prevX != @src_x && prevY != @src_y
-    out.push(@src_x, @src_y) if prevX != @src_x || prevY != @src_y
+    out.push(@src_x, prev_y) if prev_x != @src_x && prev_y != @src_y
+    out.push(@src_x, @src_y) if prev_x != @src_x || prev_y != @src_y
     out
   end
 
@@ -203,9 +203,9 @@ class Graph
 
   # Runs a* on the graph
   def search
-    target   = @target
+    target = @target
     free_list = @free_list
-    tdist    = @landmark_dist
+    tdist = @landmark_dist
 
     # Initialize target properties
     dist = INFINITY
@@ -218,7 +218,7 @@ class Graph
       ty = @dst_y.to_i
 
       to_visit = @to_visit
-      while to_visit != NIL
+      while to_visit != Vertex::NIL
         node = to_visit
         nx   = node.x.to_i
         ny   = node.y.to_i
@@ -270,7 +270,7 @@ class Graph
 
     # Reset pointers
     @free_list = target
-    @to_visit = NIL
+    @to_visit = Vertex::NIL
     @last_s = @last_t = nil
 
     # Reset landmark distance

@@ -62,10 +62,10 @@ class Vertex
 
     def clear(v) # clearList
       while v
-        var nxt = v.next_free
+        nxt = v.next_free
         v.state = 0
         v.left = v.right = v.parent = NIL
-        v.next_free = null
+        v.next_free = nil
         v = nxt
       end
     end
