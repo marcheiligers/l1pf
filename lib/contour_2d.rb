@@ -31,7 +31,7 @@ def getParallelCountours(array, direction)
   x0 = 0
   j = 0
 
-  m.times do |jj|
+  m.times do |jj| # TODO: convert to while loop for performance: jj = -1; while (jj += 1) < m
     j = jj
     b = array.get(0, j) != 0
     next if b == a
@@ -45,12 +45,12 @@ def getParallelCountours(array, direction)
   contours.push(Segment.new(x0, j, direction, 0)) if a
 
   # Scan center
-  (1...n).each do |i|
+  (1...n).each do |i| # TODO: convert to while loop for performance: i = 0; while (i += 1) < n
     a = false
     b = false
     x0 = 0
     j = 0
-    m.times do |jj|
+    m.times do |jj| # TODO: convert to while loop for performance: jj = -1; while (jj += 1) < m
       j = jj
       c = array.get(i-1, j) != 0
       d = array.get(i, j) != 0
@@ -83,7 +83,7 @@ def getParallelCountours(array, direction)
   a = false
   x0 = 0
   j = 0
-  m.times do |jj|
+  m.times do |jj| # TODO: convert to while loop for performance: jj = -1; while (jj += 1) < m
     j = jj
     b = array.get(n - 1, j) != 0
     next if b == a
@@ -101,7 +101,7 @@ end
 
 def getVertices(contours)
   vertices = Array.new(contours.length * 2)
-  contours.length.times do |i|
+  contours.length.times do |i| # TODO: convert to while loop for performance: l = contours.length; i = -1; while (i += 1) < l
     h = contours[i]
     if h.direction == 0
       vertices[2 * i] = ContourVertex.new(h.start, h.height, h, 0)
@@ -149,7 +149,7 @@ end
 
 
 def getContours(array, clockwise)
-  clockwise = !!clockwise
+  clockwise = !!clockwise # TODO: is !! the idiomatic Ruby way to convert to boolean?
 
   # First extract horizontal contours and vertices
   hcontours = getParallelCountours(array, 0)
@@ -162,7 +162,7 @@ def getContours(array, clockwise)
   vvertices.sort! { |a, b| compareVertex(a, b) }
 
   # Glue horizontal and vertical vertices together
-  hvertices.length.times do |i|
+  hvertices.length.times do |i| # TODO: convert to while loop for performance: l = hvertices.length; i = -1; while (i += 1) < l
     h = hvertices[i]
     v = vvertices[i]
     if h.orientation != 0
@@ -176,7 +176,7 @@ def getContours(array, clockwise)
 
   # Unwrap loops
   loops = []
-  hcontours.length.times do |i|
+  hcontours.length.times do |i| # TODO: convert to while loop for performance: l = hcontours.length; i = -1; while (i += 1) < l
     h = hcontours[i]
     loops.push(walk(h, clockwise)) if !h.visited
   end

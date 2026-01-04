@@ -17,7 +17,7 @@ module BSearch
     i = h + 1
 
     while l <= h
-      m = (l + h) >> 1
+      m = (l + h) >> 1 # TODO: bitwise shift for division by 2 - is this the idiomatic Ruby way?
       x = a[m]
       p = c ? c.call(x, y) : (x - y)
       if p >= 0
@@ -110,6 +110,7 @@ module BSearch
     -1
   end
 
+  # TODO: is the norm function needed? it seems to handle optional parameters differently than the Ruby version
   # def norm(a, y, c, l, h, f)
   #   if (typeof c === 'function') {
   #     return f(a, y, c, (l === undefined) ? 0 : l | 0, (h === undefined) ? a.length - 1 : h | 0);

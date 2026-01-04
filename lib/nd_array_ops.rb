@@ -9,7 +9,7 @@ def ndarray_iterate(arrays)
 
   size = arr.shape.reduce(1, :*)
 
-  size.times do |i|
+  size.times do |i| # TODO: convert to while loop for performance: i = -1; while (i += 1) < size
     yield i
   end
 end
@@ -228,6 +228,7 @@ def ops_rshiftseq(a, s)
 end
 
 # Unsigned right shift operations (Ruby doesn't have >>>, treat as >>)
+# TODO: verify that >> is the correct Ruby equivalent for JavaScript's >>> unsigned right shift
 def ops_rrshift(a, b, c)
   ndarray_iterate([a]) { |i| a.data[i] = b.data[i] >> c.data[i] }
   a
@@ -251,6 +252,7 @@ end
 # Unary operations: not, bnot, neg, recip
 
 # Logical NOT operations
+# TODO: verify that converting boolean to 1/0 is the correct approach for all use cases
 def ops_not(a, b)
   ndarray_iterate([a]) { |i| a.data[i] = !b.data[i] ? 1 : 0 }
   a
@@ -744,7 +746,7 @@ end
 # Any - returns true if any element is truthy
 def ops_any(array)
   size = array.shape.reduce(1, :*)
-  size.times do |i|
+  size.times do |i| # TODO: convert to while loop for performance: i = -1; while (i += 1) < size
     return true if array.data[i]
   end
   false
@@ -753,7 +755,7 @@ end
 # All - returns true if all elements are truthy
 def ops_all(array)
   size = array.shape.reduce(1, :*)
-  size.times do |i|
+  size.times do |i| # TODO: convert to while loop for performance: i = -1; while (i += 1) < size
     return false unless array.data[i]
   end
   true
@@ -763,7 +765,7 @@ end
 def ops_sum(array)
   s = 0
   size = array.shape.reduce(1, :*)
-  size.times do |i|
+  size.times do |i| # TODO: convert to while loop for performance: i = -1; while (i += 1) < size
     s += array.data[i]
   end
   s
@@ -773,7 +775,7 @@ end
 def ops_prod(array)
   s = 1
   size = array.shape.reduce(1, :*)
-  size.times do |i|
+  size.times do |i| # TODO: convert to while loop for performance: i = -1; while (i += 1) < size
     s *= array.data[i]
   end
   s
@@ -783,7 +785,7 @@ end
 def ops_norm2squared(array)
   s = 0
   size = array.shape.reduce(1, :*)
-  size.times do |i|
+  size.times do |i| # TODO: convert to while loop for performance: i = -1; while (i += 1) < size
     a = array.data[i]
     s += a * a
   end
@@ -799,7 +801,7 @@ end
 def ops_norminf(array)
   s = 0
   size = array.shape.reduce(1, :*)
-  size.times do |i|
+  size.times do |i| # TODO: convert to while loop for performance: i = -1; while (i += 1) < size
     a = array.data[i]
     if -a > s
       s = -a
@@ -814,7 +816,7 @@ end
 def ops_norm1(array)
   s = 0
   size = array.shape.reduce(1, :*)
-  size.times do |i|
+  size.times do |i| # TODO: convert to while loop for performance: i = -1; while (i += 1) < size
     a = array.data[i]
     s += (a < 0 ? -a : a)
   end
@@ -825,7 +827,7 @@ end
 def ops_sup(array)
   h = -Float::INFINITY
   size = array.shape.reduce(1, :*)
-  size.times do |i|
+  size.times do |i| # TODO: convert to while loop for performance: i = -1; while (i += 1) < size
     h = array.data[i] if array.data[i] > h
   end
   h
@@ -835,7 +837,7 @@ end
 def ops_inf(array)
   h = Float::INFINITY
   size = array.shape.reduce(1, :*)
-  size.times do |i|
+  size.times do |i| # TODO: convert to while loop for performance: i = -1; while (i += 1) < size
     h = array.data[i] if array.data[i] < h
   end
   h
@@ -851,7 +853,7 @@ def ops_argmin(array)
   size = array.shape.reduce(1, :*)
   min_idx = 0
 
-  size.times do |i|
+  size.times do |i| # TODO: convert to while loop for performance: i = -1; while (i += 1) < size
     if array.data[i] < v
       v = array.data[i]
       min_idx = i
@@ -881,7 +883,7 @@ def ops_argmax(array)
   size = array.shape.reduce(1, :*)
   max_idx = 0
 
-  size.times do |i|
+  size.times do |i| # TODO: convert to while loop for performance: i = -1; while (i += 1) < size
     if array.data[i] > v
       v = array.data[i]
       max_idx = i
@@ -922,7 +924,7 @@ end
 # Equals - returns true if arrays are equal
 def ops_equals(a, b)
   size = a.shape.reduce(1, :*)
-  size.times do |i|
+  size.times do |i| # TODO: convert to while loop for performance: i = -1; while (i += 1) < size
     return false if a.data[i] != b.data[i]
   end
   true

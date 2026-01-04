@@ -165,8 +165,8 @@ class Vertex
     @y        = y
 
     # Priority queue info
-    @heuristic = 0.25
-    @weight    = 0.25
+    @heuristic = 0.25 # TODO: why 0.25? is this a magic number?
+    @weight    = 0.25 # TODO: why 0.25? is this a magic number?
     @left      = nil
     @right     = nil
     @parent    = nil

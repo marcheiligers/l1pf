@@ -68,7 +68,7 @@ class NDArray
     str = @stride.dup
     ost = @offset
 
-    @dimension.times do |i|
+    @dimension.times do |i| # TODO: convert to while loop for performance: i = -1; while (i += 1) < @dimension
       if pos[i].is_a?(Integer)
         d = pos[i]
         if d < 0
@@ -87,7 +87,7 @@ class NDArray
   def transpose(*pos)
     shp = []
     str = []
-    @dimension.times do |i|
+    @dimension.times do |i| # TODO: convert to while loop for performance: i = -1; while (i += 1) < @dimension
       d = pos[i].is_a?(Integer) ? pos[i] : i
       shp[i] = @shape[d]
       str[i] = @stride[d]
@@ -133,7 +133,7 @@ class NDArray
   def hi(*pos)
     NDArray.new(
       @data,
-      @dimension.times.map { |i| (pos[i].is_a?(Integer) && pos[i] >= 0) ? pos[i] : @shape[i] },
+      @dimension.times.map { |i| (pos[i].is_a?(Integer) && pos[i] >= 0) ? pos[i] : @shape[i] }, # TODO: convert to while loop for performance
       @stride,
       @offset
     )
@@ -144,7 +144,7 @@ class NDArray
     ost = @offset
     d = 0
 
-    @dimension.times do |i|
+    @dimension.times do |i| # TODO: convert to while loop for performance: i = -1; while (i += 1) < @dimension
       if pos[i].is_a?(Integer) && pos[i] >= 0
         d = pos[i]
         ost += @stride[i] * d
@@ -162,7 +162,7 @@ class NDArray
     str = []
     ost = @offset
 
-    @dimension.times do |i|
+    @dimension.times do |i| # TODO: convert to while loop for performance: i = -1; while (i += 1) < @dimension
       if pos[i].is_a?(Integer) && pos[i] >= 0
         ost = (ost + @stride[i] * pos[i])
       else

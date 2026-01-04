@@ -3,7 +3,7 @@ module Permutations
 
   def self.invert(pi, result = nil)
     result = result || Array.new(pi.length)
-    pi.length.times do |i|
+    pi.length.times do |i| # TODO: convert to while loop for performance: l = pi.length; i = -1; while (i += 1) < l
       result[pi[i]] = i
     end
     result
@@ -70,12 +70,12 @@ module Permutations
     end
 
     (n - 1).downto(1) do |i|
-      s = r == 0 || nf == 0 ? 0 : (r / nf) | 0
-      r = (r - s * nf) | 0
-      nf = (nf / i) | 0
-      t = p[i] | 0
-      p[i] = p[s] | 0
-      p[s] = t | 0
+      s = r == 0 || nf == 0 ? 0 : (r / nf) | 0 # TODO: is | 0 the right way to truncate to integer in Ruby?
+      r = (r - s * nf) | 0 # TODO: is | 0 the right way to truncate to integer in Ruby?
+      nf = (nf / i) | 0 # TODO: is | 0 the right way to truncate to integer in Ruby?
+      t = p[i] | 0 # TODO: is | 0 the right way to truncate to integer in Ruby?
+      p[i] = p[s] | 0 # TODO: is | 0 the right way to truncate to integer in Ruby?
+      p[s] = t | 0 # TODO: is | 0 the right way to truncate to integer in Ruby?
     end
 
     p

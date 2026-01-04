@@ -34,7 +34,7 @@ class PlannerBuilder
     root = makeTree(@geom.corners, -Float::INFINITY, Float::INFINITY)
 
     # Link edges
-    @edges.length.times do |i|
+    @edges.length.times do |i| # TODO: convert to while loop for performance: l = @edges.length; i = -1; while (i += 1) < l
       @graph.link(@verts[@edges[i][0]], @verts[@edges[i][1]])
     end
 
@@ -56,12 +56,12 @@ private
 
   def makeLeaf(corners, x0, x1)
     localVerts = []
-    corners.length.times do |i|
+    corners.length.times do |i| # TODO: convert to while loop for performance: l = corners.length; i = -1; while (i += 1) < l
       u = corners[i]
       ux = @graph.vertex(u[0], u[1])
       localVerts.push(ux)
       @verts[u] = ux
-      i.times do |j|
+      i.times do |j| # TODO: convert to while loop for performance: j = -1; while (j += 1) < i
         v = corners[j]
         @edges.push([u,v]) if !@geom.stabBox(u[0], u[1], v[0], v[1])
       end
@@ -75,7 +75,7 @@ private
     left  = []
     right = []
     on    = []
-    corners.length.times do |i|
+    corners.length.times do |i| # TODO: convert to while loop for performance: l = corners.length; i = -1; while (i += 1) < l
       if corners[i][0] < x
         left.push(corners[i])
       elsif(corners[i][0] > x)
@@ -114,12 +114,12 @@ private
 
   def add_steiner(x, on, y, first)
     if !@geom.stabTile(x, y)
-      on.length.times do |i|
+      on.length.times do |i| # TODO: convert to while loop for performance: l = on.length; i = -1; while (i += 1) < l
         return on[i] if on[i][0] == x && on[i][1] == y
       end
 
       pair = [x, y]
-      if first
+      if first # TODO: verify the semantics of first - should it be at the beginning or end of the array?
         on.unshift(pair)
       else
         on.push(pair)
@@ -133,9 +133,9 @@ private
   end
 
   def bipartite(a, b)
-    a.length.times do |i|
+    a.length.times do |i| # TODO: convert to while loop for performance: l = a.length; i = -1; while (i += 1) < l
       u = a[i]
-      b.length.times do |j|
+      b.length.times do |j| # TODO: convert to while loop for performance: bl = b.length; j = -1; while (j += 1) < bl
         v = b[j]
         @edges.push([u,v]) unless @geom.stabBox(u[0], u[1], v[0], v[1])
       end
@@ -155,7 +155,7 @@ private
     on    = []
 
     # Intersect rays along x horizontal line
-    corners.length.times do |i|
+    corners.length.times do |i| # TODO: convert to while loop for performance: l = corners.length; i = -1; while (i += 1) < l
       c = corners[i]
       on.push(c) if !@geom.stabRay(c[0], c[1], x)
 
@@ -216,13 +216,13 @@ private
     return nil if corners.length == 0
     return makeLeaf(corners, x0, x1) if corners.length < LEAF_CUTOFF
 
-    x = corners[corners.length >> 1][0]
+    x = corners[corners.length >> 1][0] # TODO: bitwise shift for division by 2 - is this the idiomatic Ruby way?
     partition = makePartition(x, corners)
     left      = makeTree(partition[:left], x0, x)
     right     = makeTree(partition[:right], x, x1)
 
     # Construct vertices
-    partition[:on].length.times do |i|
+    partition[:on].length.times do |i| # TODO: convert to while loop for performance: l = partition[:on].length; i = -1; while (i += 1) < l
       @verts[partition[:on][i]] = @graph.vertex(partition[:on][i][0], partition[:on][i][1])
     end
 
@@ -231,7 +231,7 @@ private
     buckets = []
     lastSteiner = nil
     i = 0
-    while i < vis.length
+    while i < vis.length # TODO: already using while loop - good!
       v0 = i
       v1 = [i + BUCKET_SIZE - 1, vis.length - 1].min
       # Continue while next element exists and has same y coordinate
@@ -316,7 +316,7 @@ private
   end
 
   def connectList(nodes, geom, graph, target, x, y)
-    nodes.length.times do |i|
+    nodes.length.times do |i| # TODO: convert to while loop for performance: l = nodes.length; i = -1; while (i += 1) < l
       v = nodes[i]
       if !geom.stabBox(v.x, v.y, x, y)
         if target
@@ -334,7 +334,7 @@ private
       # Check leaf case
       if node.is_a?(Leaf)
         vv = node.verts
-        vv.length.times do |i|
+        vv.length.times do |i| # TODO: convert to while loop for performance: l = vv.length; i = -1; while (i += 1) < l
           v = vv[i]
           if !geom.stabBox(v.x, v.y, x, y)
             if target
