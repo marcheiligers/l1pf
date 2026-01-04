@@ -302,12 +302,12 @@ def render(args)
   # Swap x and y to match grid coordinate system
   start_x = GRID_OFFSET_X + args.state.start_y * CELL_SIZE
   start_y = GRID_OFFSET_Y + args.state.start_x * CELL_SIZE
-  args.outputs.solids << [start_x + 2, start_y + 2, CELL_SIZE - 4, CELL_SIZE - 4, 100, 255, 100]
+  args.outputs.solids << [start_x, start_y, CELL_SIZE, CELL_SIZE, 100, 255, 100]
 
   # Draw end point (red)
   end_x = GRID_OFFSET_X + args.state.end_y * CELL_SIZE
   end_y = GRID_OFFSET_Y + args.state.end_x * CELL_SIZE
-  args.outputs.solids << [end_x + 2, end_y + 2, CELL_SIZE - 4, CELL_SIZE - 4, 255, 100, 100]
+  args.outputs.solids << [end_x, end_y, CELL_SIZE, CELL_SIZE, 255, 100, 100]
 
   # Draw instructions
   y_pos = 720 - 30
