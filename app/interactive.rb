@@ -17,8 +17,8 @@ require 'lib/geometry'
 require 'lib/planner'
 
 # Interactive L1 Pathfinding Demo
-GRID_SIZE = 32
-CELL_SIZE = 20
+GRID_SIZE = 128
+CELL_SIZE = 5
 GRID_OFFSET_X = 40
 GRID_OFFSET_Y = 40
 
@@ -38,6 +38,8 @@ def tick(args)
 
   # Render
   render(args)
+
+  args.outputs.primitives << GTK.framerate_diagnostics_primitives
 end
 
 def init_demo(args)
@@ -247,24 +249,26 @@ def update_path(args)
   args.state.path_dist = dist
 end
 
+WALL_COLOR = { r: 200, g: 200, b: 210 }
+FLOOR_COLOR = { r: 40, g: 40, b: 50 }
+BG_COLOR = { r: 20, g: 20, b: 30 }
+
 def render(args)
-  args.outputs.background_color = [20, 20, 30]
+  args.outputs.background_color = BG_COLOR
 
   # Draw grid cells
-  GRID_SIZE.times do |y|
-    GRID_SIZE.times do |x|
+  y = -1
+  while (y += 1) < GRID_SIZE
+    x = -1
+    while (x += 1) < GRID_SIZE
       cell_x = GRID_OFFSET_X + x * CELL_SIZE
       cell_y = GRID_OFFSET_Y + y * CELL_SIZE
 
       idx = y * GRID_SIZE + x
       is_wall = args.state.grid_data[idx] == 1
 
-      # Cell background
-      color = is_wall ? [200, 200, 210] : [40, 40, 50]
-      args.outputs.solids << [cell_x, cell_y, CELL_SIZE, CELL_SIZE, *color]
-
-      # Cell border
-      args.outputs.borders << [cell_x, cell_y, CELL_SIZE, CELL_SIZE, 210, 210, 220]
+      color = is_wall ? WALL_COLOR : FLOOR_COLOR
+      args.outputs.solids << { x: cell_x, y: cell_y, w: CELL_SIZE, h: CELL_SIZE, **color }
     end
   end
 
@@ -299,13 +303,11 @@ def render(args)
   start_x = GRID_OFFSET_X + args.state.start_y * CELL_SIZE
   start_y = GRID_OFFSET_Y + args.state.start_x * CELL_SIZE
   args.outputs.solids << [start_x + 2, start_y + 2, CELL_SIZE - 4, CELL_SIZE - 4, 100, 255, 100]
-  args.outputs.labels << [start_x + CELL_SIZE / 2, start_y + CELL_SIZE / 2 + 4, 'S', 0, 1, 0, 0, 0, 255]
 
   # Draw end point (red)
   end_x = GRID_OFFSET_X + args.state.end_y * CELL_SIZE
   end_y = GRID_OFFSET_Y + args.state.end_x * CELL_SIZE
   args.outputs.solids << [end_x + 2, end_y + 2, CELL_SIZE - 4, CELL_SIZE - 4, 255, 100, 100]
-  args.outputs.labels << [end_x + CELL_SIZE / 2, end_y + CELL_SIZE / 2 + 4, 'E', 0, 1, 255, 255, 255, 255]
 
   # Draw instructions
   y_pos = 720 - 30
@@ -328,6 +330,4 @@ def render(args)
     color = [100, 255, 100]
   end
   args.outputs.labels << [10, 35, dist_text, 0, 0, *color]
-
-  args.outputs.primitives << GTK.framerate_diagnostics_primitives
 end
