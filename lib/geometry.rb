@@ -116,7 +116,7 @@ def createGeometry(grid) # TODO: rename to create_geometry (snake_case conventio
   corners.uniq!
 
   # Create integral image
-  img = NDArray.new(Array.new(grid.shape[0]*grid.shape[1], 0), grid.shape)
+  img = TwoDArray.new(Array.new(grid.shape[0]*grid.shape[1], 0), grid.shape)
   ops_gts(img, grid, 0)
   prefix_sum(img)
 
