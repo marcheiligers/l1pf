@@ -5,14 +5,14 @@ require 'lib/l1pf'
 # GRID_SIZE = 15
 # CELL_SIZE = 40
 
-GRID_SIZE = 33
-CELL_SIZE = 20
+# GRID_SIZE = 33
+# CELL_SIZE = 20
 
 # GRID_SIZE = 65
 # CELL_SIZE = 10
 
-# GRID_SIZE = 129
-# CELL_SIZE = 5
+GRID_SIZE = 129
+CELL_SIZE = 5
 
 # GRID_SIZE = 255
 # CELL_SIZE = 2
@@ -203,7 +203,7 @@ end
 
 def update_path(args)
   # Recreate planner if needed (when start/end move or grid changes)
-  # if args.state.needs_planner_update
+  if args.state.needs_planner_update
     # Ensure start and end positions are clear in grid
     start_idx = args.state.start_y * GRID_SIZE + args.state.start_x
     end_idx = args.state.end_y * GRID_SIZE + args.state.end_x
@@ -214,7 +214,7 @@ def update_path(args)
     args.state.grid = NDArray.new(args.state.grid_data, [GRID_SIZE, GRID_SIZE])
     args.state.planner = createPlanner(args.state.grid)
     args.state.needs_planner_update = false
-  # end
+  end
 
   # Run pathfinding
   if args.state.planner.nil?
