@@ -9,8 +9,8 @@
 
 # module.exports = createGeometry
 
-# TODO: namespace pollution - class should be nested in a module (e.g., Geometry::PathGeometry)
-class PathGeometry
+module Geometry
+  class PathGeometry
   attr_reader :corners, :grid
 
   def initialize(corners, grid)
@@ -20,12 +20,12 @@ class PathGeometry
     @max_y   = grid.shape[1] - 1
   end
 
-  def stabRay(vx, vy, x) # TODO: rename to stab_ray (snake_case convention)
-    stabBox(vx, vy, x, vy)
+  def stab_ray(vx, vy, x)
+    stab_box(vx, vy, x, vy)
   end
 
-  def stabTile(x, y) # TODO: rename to stab_tile (snake_case convention)
-    stabBox(x, y, x, y)
+  def stab_tile(x, y)
+    stab_box(x, y, x, y)
   end
 
   def integrate(x, y)
@@ -37,7 +37,7 @@ class PathGeometry
     )
   end
 
-  def stabBox(ax, ay, bx, by) # TODO: rename to stab_box (snake_case convention)
+  def stab_box(ax, ay, bx, by)
     lox = ax.lesser(bx)
     loy = ay.lesser(by)
     hix = ax.greater(bx)
@@ -61,19 +61,18 @@ class PathGeometry
 
     v1 - v2 - v3 + v4 > 0
   end
-end
+  end
 
-# TODO: namespace pollution - wrap in module or make this a private helper
-def comparePair(a, b) # TODO: rename to compare_pair (snake_case convention); is this basically saying return a == b?
-  d = a[0] - b[0]
-  return d unless d.zero?
+  # Helper function for comparing pairs
+  def self.compare_pair(a, b)
+    d = a[0] - b[0]
+    return d unless d.zero?
 
-  a[1] - b[1]
-end
+    a[1] - b[1]
+  end
 
-# TODO: namespace pollution - this is the main export, should be in a module (e.g., Geometry.create or Geometry::create_geometry)
-def createGeometry(grid) # TODO: rename to create_geometry (snake_case convention)
-  loops = getContours(grid.transpose(1,0), false)
+  def self.create_geometry(grid)
+  loops = Contour2D.get_contours(grid.transpose(1,0), false)
 
   # Extract corners
   corners = []
@@ -87,7 +86,7 @@ def createGeometry(grid) # TODO: rename to create_geometry (snake_case conventio
       a = polygon[(i+pl-1)%pl]
       b = polygon[i]
       c = polygon[(i+1)%pl]
-      if orient(a, b, c) > 0
+      if Geometry.orient(a, b, c) > 0
         offset = [0,0]
         j = -1
         while (j += 1) < 2
@@ -117,9 +116,10 @@ def createGeometry(grid) # TODO: rename to create_geometry (snake_case conventio
 
   # Create integral image
   img = TwoDArray.new(Array.new(grid.shape[0]*grid.shape[1], 0), grid.shape)
-  ops_gts(img, grid, 0)
-  prefix_sum(img)
+  NDArrayOps.ops_gts(img, grid, 0)
+  NDArrayOps.prefix_sum(img)
 
   # Return resulting geometry
   PathGeometry.new(corners, img)
+  end
 end

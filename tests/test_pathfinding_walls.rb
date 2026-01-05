@@ -12,7 +12,7 @@ def test_pathfinding_js_example(_args, assert)
   ]
   grid = NDArray.new(grid_data, [8, 7])
 
-  planner = createPlanner(grid)
+  planner = Planner.create(grid)
   path = []
   dist = planner.search(0, 0, 7, 6, path)
 
@@ -31,7 +31,7 @@ def test_pathfinding_with_walls(_args, assert)
   ]
   grid = NDArray.new(grid_data, [5, 5])
 
-  planner = createPlanner(grid)
+  planner = Planner.create(grid)
   path = []
   dist = planner.search(0, 0, 4, 4, path)
 
@@ -49,7 +49,7 @@ def test_pathfinding_single_wall(_args, assert)
   ]
   grid = NDArray.new(grid_data, [4, 4])
 
-  planner = createPlanner(grid)
+  planner = Planner.create(grid)
   path = []
   dist = planner.search(0, 0, 3, 3, path)
 
@@ -70,7 +70,7 @@ def test_pathfinding_c_shaped_wall(_args, assert)
   ]
   grid = NDArray.new(grid_data, [7, 7])
 
-  planner = createPlanner(grid)
+  planner = Planner.create(grid)
   path = []
   dist = planner.search(1, 1, 5, 5, path)
 

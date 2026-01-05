@@ -5,7 +5,7 @@ def tick args
     # GTK.console.show
     GTK.benchmark iterations: 100_000,
       iota_array: lambda {
-        arr = iota(50)
+        arr = ArrayUtils.iota(50)
         arr[20]
       },
       range: lambda {

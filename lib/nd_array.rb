@@ -83,7 +83,7 @@ class NDArray
                when 0 then []
                when 1 then [0]
                when 2 then @stride[0].abs > @stride[1].abs ? [1, 0] : [0, 1]
-               else @stride.zip(iota(@dimension)).sort_by { |a| a[0].abs }.map { |a| a[1] }
+               else @stride.zip(ArrayUtils.iota(@dimension)).sort_by { |a| a[0].abs }.map { |a| a[1] }
                end
   end
 

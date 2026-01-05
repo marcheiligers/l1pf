@@ -92,7 +92,7 @@ def test_graph_a_star_singleton(_args, assert)
   g.add_s(v)
   assert.equal!(v.state, 2, 'v active')
 
-  assert.equal!(g.search, INFINITY, 'disconnected')
+  assert.equal!(g.search, Vertex::INFINITY, 'disconnected')
 
   graph_check_default_graph_invariant(assert, g)
 end

@@ -7,17 +7,6 @@
 # var NUM_LANDMARKS = vtx.NUM_LANDMARKS
 # var LANDMARK_DIST = vtx.LANDMARK_DIST
 
-# TODO: namespace pollution - wrap in module or make this a class method of Graph
-def heuristic(tdist, tx, ty, node)
-  pi = (node.x - tx).abs + (node.y - ty).abs
-  ndist = node.landmark
-  i = -1
-  while (i += 1) < NUM_LANDMARKS
-    pi = pi.greater(tdist[i] - ndist[i])
-  end
-  1.0000009536743164 * pi # TODO: this magic number seems very specific. what is it?
-end
-
 class Graph
   attr_reader :target, :verts, :free_list, :to_visit, :last_s, :last_t,
               :src_x, :src_y, :dst_x, :dst_y, :landmarks, :landmark_dist
@@ -34,7 +23,7 @@ class Graph
     @dst_x     = 0
     @dst_y     = 0
     @landmarks = []
-    @landmark_dist = Array.new(NUM_LANDMARKS, INFINITY) # copied from Vertex
+    @landmark_dist = Array.new(Vertex::NUM_LANDMARKS, Vertex::INFINITY) # copied from Vertex
   end
 
   def vertex(x, y)
@@ -78,7 +67,7 @@ class Graph
       d = (v.x - @dst_x).abs + (v.y - @dst_y).abs
       vdist = v.landmark
       tdist = @landmark_dist
-      l = NUM_LANDMARKS
+      l = Vertex::NUM_LANDMARKS
       i = -1
       while (i += 1) < l
         tdist[i] = tdist[i].lesser(vdist[i] + d)
@@ -156,7 +145,7 @@ class Graph
 
     v = component[component.length >> 1] # TODO: bitwise shift for division by 2 - is this the idiomatic Ruby way?
 
-    l = NUM_LANDMARKS
+    l = Vertex::NUM_LANDMARKS
     k = -1
     while (k += 1) < l
       v.weight = 0.0
@@ -195,7 +184,7 @@ class Graph
         u = component[i]
         u.state = 0
         u.landmark[k] = u.weight
-        s = INFINITY
+        s = Vertex::INFINITY
         j = -1
         while (j += 1) < k
           s = s.lesser(u.landmark[j])
@@ -224,7 +213,7 @@ class Graph
     tdist = @landmark_dist
 
     # Initialize target properties
-    dist = INFINITY
+    dist = Vertex::INFINITY
 
     # Test for case where S and T are disconnected
     if @last_s && @last_t && @last_s.component == @last_t.component
@@ -291,13 +280,25 @@ class Graph
     @last_s = @last_t = nil
 
     # Reset landmark distance
-    l = NUM_LANDMARKS
+    l = Vertex::NUM_LANDMARKS
     i = -1
     while (i += 1) < l
-      tdist[i] = INFINITY
+      tdist[i] = Vertex::INFINITY
     end
 
     # Return target distance
     dist
+  end
+
+private
+
+  def heuristic(tdist, tx, ty, node)
+    pi = (node.x - tx).abs + (node.y - ty).abs
+    ndist = node.landmark
+    i = -1
+    while (i += 1) < Vertex::NUM_LANDMARKS
+      pi = pi.greater(tdist[i] - ndist[i])
+    end
+    1.0000009536743164 * pi # TODO: this magic number seems very specific. what is it?
   end
 end

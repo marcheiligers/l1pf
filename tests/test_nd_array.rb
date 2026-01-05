@@ -73,7 +73,7 @@ def test_nd_to_a(_args, assert)
   assert.equal!(n.get(1, 1), a[1][1])
 
   # 3d
-  n = NDArray.new(iota(24), [2, 3, 4])
+  n = NDArray.new(ArrayUtils.iota(24), [2, 3, 4])
   a = n.to_a
   2.times do |x|
     3.times do |y|
@@ -155,7 +155,7 @@ def test_ndarray_size(_args, assert)
 end
 
 def test_ndarray_step(_args, assert)
-  x = NDArray.new(iota(10))
+  x = NDArray.new(ArrayUtils.iota(10))
 
   y = x.step(-1)
   10.times do |i|
@@ -215,8 +215,8 @@ def test_ndarray_order(_args, assert)
 
   assert.equal!(NDArray.new([0]).pick(0).order, [])
 
-  assert.equal!(NDArray.new(Array.new(2), iota(2), [0, 1]).order, [0, 1])
-  assert.equal!(NDArray.new(Array.new(2), iota(2), [1, 0]).order, [1, 0])
+  assert.equal!(NDArray.new(Array.new(2), ArrayUtils.iota(2), [0, 1]).order, [0, 1])
+  assert.equal!(NDArray.new(Array.new(2), ArrayUtils.iota(2), [1, 0]).order, [1, 0])
 
   ORDERS.each do |from, to|
     assert.equal!(NDArray.new(from, from, from).order, to)

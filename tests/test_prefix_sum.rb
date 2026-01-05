@@ -4,7 +4,7 @@
 def test_prefix_sum_1d(_args, assert)
   x = NDArray.new([1,2,3,4,5])
 
-  prefix_sum(x)
+  NDArrayOps.prefix_sum(x)
   assert.equal!(x.get(0), 1)
   assert.equal!(x.get(1), 3)
   assert.equal!(x.get(2), 6)
@@ -14,7 +14,7 @@ end
 
 def test_prefix_sum_1d_reversed(_args, assert)
   x = NDArray.new([1,2,3,4,5]).step(-1)
-  prefix_sum(x)
+  NDArrayOps.prefix_sum(x)
   assert.equal!(x.get(0), 5)
   assert.equal!(x.get(1), 9)
   assert.equal!(x.get(2), 12)
@@ -29,7 +29,7 @@ def test_prefix_sum_2d(_args, assert)
     8, 9, 10, 11,
     12, 13, 14, 15
   ], [4,4])
-  prefix_sum(x)
+  NDArrayOps.prefix_sum(x)
   assert.equal!(x.get(0,0), 0)
   assert.equal!(x.get(0,1), 1)
   assert.equal!(x.get(0,2), 3)
@@ -39,5 +39,5 @@ def test_prefix_sum_2d(_args, assert)
   assert.equal!(x.get(1,2), 18)
   assert.equal!(x.get(1,3), 28)
 
-  prefix_sum(x.transpose(1,0))
+  NDArrayOps.prefix_sum(x.transpose(1,0))
 end

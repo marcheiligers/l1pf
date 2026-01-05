@@ -4,13 +4,9 @@
 # var createGeometry = require('./geometry')
 # var Graph = require('./graph')
 
-# TODO: namespace pollution - these constants should be namespaced (e.g., as class constants in PlannerBuilder)
-LEAF_CUTOFF = 64
-BUCKET_SIZE = 32
-
 # module.exports = createPlanner
 
-# TODO: namespace pollution - classes should be nested in a module (e.g., Planner::Leaf)
+module Planner
 class Leaf
   attr_accessor :verts, :leaf
 
@@ -20,21 +16,22 @@ class Leaf
   end
 end
 
-# TODO: namespace pollution - Struct definitions should be namespaced or nested in a module
 Bucket = Struct.new(:y0, :y1, :top, :bottom, :left, :right, :on)
 
 Node = Struct.new(:x, :buckets, :left, :right)
 
 class PlannerBuilder
+  LEAF_CUTOFF = 64
+  BUCKET_SIZE = 32
   def initialize(grid)
-    @geom = createGeometry(grid)
+    @geom = Geometry.create_geometry(grid)
     @graph = Graph.new
     @verts = {}
     @edges = []
   end
 
   def build
-    root = makeTree(@geom.corners, -Float::INFINITY, Float::INFINITY)
+    root = make_tree(@geom.corners, -Float::INFINITY, Float::INFINITY)
 
     # Link edges
     l = @edges.length
@@ -52,33 +49,33 @@ class PlannerBuilder
 
 private
 
-  def makeVertex(pair) # TODO: rename to make_vertex (snake_case convention)
+  def make_vertex(pair)
     return nil unless pair
     return @verts[pair] if @verts[pair]
 
     @verts[pair] = @graph.vertex(pair[0], pair[1])
   end
 
-  def makeLeaf(corners, x0, x1) # TODO: rename to make_leaf (snake_case convention)
-    localVerts = [] # TODO: rename to local_verts (snake_case convention)
+  def make_leaf(corners, x0, x1)
+    local_verts = []
     l = corners.length
     i = -1
     while (i += 1) < l
       u = corners[i]
       ux = @graph.vertex(u[0], u[1])
-      localVerts.push(ux)
+      local_verts.push(ux)
       @verts[u] = ux
       j = -1
       while (j += 1) < i
         v = corners[j]
-        @edges.push([u,v]) if !@geom.stabBox(u[0], u[1], v[0], v[1])
+        @edges.push([u,v]) if !@geom.stab_box(u[0], u[1], v[0], v[1])
       end
     end
 
-    Leaf.new(localVerts)
+    Leaf.new(local_verts)
   end
 
-  def makeBucket(corners, x) # TODO: rename to make_bucket (snake_case convention)
+  def make_bucket(corners, x)
     # Split visible corners into 3 cases
     left  = []
     right = []
@@ -97,8 +94,8 @@ private
 
     y0 = corners[0][1]
     y1 = corners[corners.length-1][1]
-    loSteiner = add_steiner(x, on, y0, true) # TODO: rename to lo_steiner (snake_case convention)
-    hiSteiner = add_steiner(x, on, y1, false) # TODO: rename to hi_steiner (snake_case convention)
+    lo_steiner = add_steiner(x, on, y0, true)
+    hi_steiner = add_steiner(x, on, y1, false)
 
     bipartite(left, right)
     bipartite(on, left)
@@ -109,22 +106,22 @@ private
     while (i += 1) < on.length
       u = on[i-1]
       v = on[i]
-      @edges.push([u,v]) if !@geom.stabBox(u[0], u[1], v[0], v[1])
+      @edges.push([u,v]) if !@geom.stab_box(u[0], u[1], v[0], v[1])
     end
 
     {
       left:     left,
       right:    right,
       on:       on,
-      steiner0: loSteiner,
-      steiner1: hiSteiner,
+      steiner0: lo_steiner,
+      steiner1: hi_steiner,
       y0:       y0,
       y1:       y1
     }
   end
 
   def add_steiner(x, on, y, first)
-    if !@geom.stabTile(x, y)
+    if !@geom.stab_tile(x, y)
       l = on.length
       i = -1
       while (i += 1) < l
@@ -154,19 +151,19 @@ private
       j = -1
       while (j += 1) < bl
         v = b[j]
-        @edges.push([u,v]) unless @geom.stabBox(u[0], u[1], v[0], v[1])
+        @edges.push([u,v]) unless @geom.stab_box(u[0], u[1], v[0], v[1])
       end
     end
   end
 
-  def comparePair(a, b) # TODO: rename to compare_pair (snake_case convention)
+  def compare_pair(a, b)
     d = a[1] - b[1]
     return d unless d == 0
 
     a[0] - b[0]
   end
 
-  def makePartition(x, corners) # TODO: rename to make_partition (snake_case convention)
+  def make_partition(x, corners)
     left  = []
     right = []
     on    = []
@@ -176,7 +173,7 @@ private
     i = -1
     while (i += 1) < l
       c = corners[i]
-      on.push(c) if !@geom.stabRay(c[0], c[1], x)
+      on.push(c) if !@geom.stab_ray(c[0], c[1], x)
 
       if c[0] < x
         left.push(c)
@@ -186,7 +183,7 @@ private
     end
 
     # Sort on events by y then x
-    on.sort! { |a, b| comparePair(a, b) }
+    on.sort! { |a, b| compare_pair(a, b) }
 
     # Construct vertices and horizontal edges
     vis = []
@@ -231,14 +228,14 @@ private
     }
   end
 
-  def makeTree(corners, x0, x1) # TODO: rename to make_tree (snake_case convention)
+  def make_tree(corners, x0, x1)
     return nil if corners.length == 0
-    return makeLeaf(corners, x0, x1) if corners.length < LEAF_CUTOFF
+    return make_leaf(corners, x0, x1) if corners.length < LEAF_CUTOFF
 
     x = corners[corners.length >> 1][0] # TODO: bitwise shift for division by 2 - is this the idiomatic Ruby way?
-    partition = makePartition(x, corners)
-    left      = makeTree(partition[:left], x0, x)
-    right     = makeTree(partition[:right], x, x1)
+    partition = make_partition(x, corners)
+    left      = make_tree(partition[:left], x0, x)
+    right     = make_tree(partition[:right], x, x1)
 
     # Construct vertices
     l = partition[:on].length
@@ -250,7 +247,7 @@ private
     # Build buckets
     vis = partition[:vis]
     buckets = []
-    lastSteiner = nil # TODO: rename to last_steiner (snake_case convention)
+    last_steiner = nil
     i = 0
     l = vis.length
     while i < l
@@ -263,19 +260,19 @@ private
 
       i = v1 + 1
       slice_length = v1 - v0 + 1
-      bb = makeBucket(vis.slice(v0, slice_length), x)
-      if lastSteiner && bb[:steiner0] && !@geom.stabBox(lastSteiner[0], lastSteiner[1], bb[:steiner0][0], bb[:steiner0][1])
-        @edges.push([lastSteiner, bb[:steiner0]])
+      bb = make_bucket(vis.slice(v0, slice_length), x)
+      if last_steiner && bb[:steiner0] && !@geom.stab_box(last_steiner[0], last_steiner[1], bb[:steiner0][0], bb[:steiner0][1])
+        @edges.push([last_steiner, bb[:steiner0]])
       end
-      lastSteiner = bb[:steiner1]
+      last_steiner = bb[:steiner1]
       buckets.push(Bucket.new(
         bb[:y0],
         bb[:y1],
-        makeVertex(bb[:steiner0]),
-        makeVertex(bb[:steiner1]),
-        bb[:left].map { |v| makeVertex(v) },
-        bb[:right].map { |v| makeVertex(v) },
-        bb[:on].map { |v| makeVertex(v) }
+        make_vertex(bb[:steiner0]),
+        make_vertex(bb[:steiner1]),
+        bb[:left].map { |v| make_vertex(v) },
+        bb[:right].map { |v| make_vertex(v) },
+        bb[:on].map { |v| make_vertex(v) }
       ))
     end
     Node.new(x, buckets, left, right)
@@ -294,7 +291,7 @@ class L1PathPlanner
 
     # Degenerate case:  s and t are equal
     if tx == sx && ty == sy
-      if !geom.stabBox(tx, ty, sx, sy)
+      if !geom.stab_box(tx, ty, sx, sy)
         out.push(sx, sy) if out
         return 0
       end
@@ -302,7 +299,7 @@ class L1PathPlanner
     end
 
     # Check easy case - s and t directly connected
-    if !geom.stabBox(tx, ty, sx, sy)
+    if !geom.stab_box(tx, ty, sx, sy)
       if out
         if sx != tx && sy != ty
           out.push(tx, ty, sx, ty, sx, sy)
@@ -317,10 +314,10 @@ class L1PathPlanner
     @graph.set_source_and_target(sx, sy, tx, ty)
 
     # Mark target
-    connectNodes(geom, @graph, @root, true, tx, ty)
+    connect_nodes(geom, @graph, @root, true, tx, ty)
 
     # Mark source
-    connectNodes(geom, @graph, @root, false, sx, sy)
+    connect_nodes(geom, @graph, @root, false, sx, sy)
 
     # Run A*
     dist = @graph.search
@@ -333,16 +330,16 @@ class L1PathPlanner
 
 private
 
-  def compareBucket(bucket, y) # TODO: rename to compare_bucket (snake_case convention)
+  def compare_bucket(bucket, y)
     bucket.y0 - y
   end
 
-  def connectList(nodes, geom, graph, target, x, y) # TODO: rename to connect_list (snake_case convention)
+  def connect_list(nodes, geom, graph, target, x, y)
     l = nodes.length
     i = -1
     while (i += 1) < l
       v = nodes[i]
-      if !geom.stabBox(v.x, v.y, x, y)
+      if !geom.stab_box(v.x, v.y, x, y)
         if target
           graph.add_t(v)
         else
@@ -352,7 +349,7 @@ private
     end
   end
 
-  def connectNodes(geom, graph, node, target, x, y) # TODO: rename to connect_nodes (snake_case convention)
+  def connect_nodes(geom, graph, node, target, x, y)
     # Mark target nodes
     while node
       # Check leaf case
@@ -362,7 +359,7 @@ private
         i = -1
         while (i += 1) < l
           v = vv[i]
-          if !geom.stabBox(v.x, v.y, x, y)
+          if !geom.stab_box(v.x, v.y, x, y)
             if target
               graph.add_t(v)
             else
@@ -375,22 +372,22 @@ private
 
       # Otherwise, glue into buckets
       buckets = node.buckets
-      idx = BSearch.lt(buckets, y, method(:compareBucket))
+      idx = BSearch.lt(buckets, y, method(:compare_bucket))
 
       if idx >= 0
         bb = buckets[idx]
         if y < bb.y1
           # Common case:
           # Connect right
-          connectList(bb.right, geom, graph, target, x, y) if node.x >= x
+          connect_list(bb.right, geom, graph, target, x, y) if node.x >= x
           # Connect left
-          connectList(bb.left, geom, graph, target, x, y) if node.x <= x # TODO: check if this is correct, connecting both right and left if node.x == x
+          connect_list(bb.left, geom, graph, target, x, y) if node.x <= x # TODO: check if this is correct, connecting both right and left if node.x == x
           # Connect on
-          connectList(bb.on, geom, graph, target, x, y)
+          connect_list(bb.on, geom, graph, target, x, y)
         else
           # Connect to bottom of bucket above
           v = buckets[idx].bottom
-          if v && !geom.stabBox(v.x, v.y, x, y)
+          if v && !geom.stab_box(v.x, v.y, x, y)
             if target
               graph.add_t(v)
             else
@@ -400,7 +397,7 @@ private
           # Connect to top of bucket below
           if idx + 1 < buckets.length
             v = buckets[idx + 1].top
-            if v && !geom.stabBox(v.x, v.y, x, y)
+            if v && !geom.stab_box(v.x, v.y, x, y)
               if target
                 graph.add_t(v)
               else
@@ -412,7 +409,7 @@ private
       else
         # Connect to top of box
         v = buckets[0].top
-        if v && !geom.stabBox(v.x, v.y, x, y)
+        if v && !geom.stab_box(v.x, v.y, x, y)
           if target
             graph.add_t(v)
           else
@@ -432,8 +429,8 @@ private
   end
 end
 
-# TODO: namespace pollution - this is the main export, should be in a module (e.g., Planner.create or L1PathPlanner.create)
-def createPlanner(grid) # TODO: rename to create_planner (snake_case convention)
+def self.create(grid)
   builder = PlannerBuilder.new(grid)
   builder.build
+end
 end

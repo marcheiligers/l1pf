@@ -14,7 +14,7 @@ grid_data = [
 grid = NDArray.new(grid_data, [8, 7])
 
 # Create the planner
-planner = createPlanner(grid)
+planner = Planner.create(grid)
 
 # Find a path from (0, 0) to (7, 6)
 # Demonstrates L1 (Manhattan) pathfinding around walls

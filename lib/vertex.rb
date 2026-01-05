@@ -1,9 +1,3 @@
-# TODO: namespace pollution - these constants should be namespaced (e.g., Vertex::NUM_LANDMARKS)
-NUM_LANDMARKS = 16
-
-INFINITY = Float::INFINITY
-LANDMARK_DIST = Array.new(NUM_LANDMARKS, INFINITY)
-
 # Vertices have to do multiple things
 #
 #   1.  They store the topology of the graph which is gonna get searched
@@ -13,6 +7,8 @@ LANDMARK_DIST = Array.new(NUM_LANDMARKS, INFINITY)
 #
 
 class Vertex
+  NUM_LANDMARKS = 16
+  INFINITY = Float::INFINITY
   attr_accessor :x, :y, :heuristic, :weight, :left, :right, :parent,
                 :next_free, :state, :pred, :edges, :landmark, :component
 
@@ -198,21 +194,3 @@ class Vertex
   NIL.weight = -INFINITY
   NIL.left = NIL.right = NIL.parent = NIL
 end
-
-# //Graph topology
-# exports.create        = createVertex
-# exports.link          = addEdge
-
-# //Free list management
-# exports.insert        = pushList
-# exports.clear         = clearList
-
-# //Heap operations
-# exports.NIL           = NIL
-# exports.push          = heapPush
-# exports.pop           = takeMin
-# exports.decreaseKey   = decreaseKey
-
-# //Landmark info
-# exports.NUM_LANDMARKS = NUM_LANDMARKS
-# exports.LANDMARK_DIST = LANDMARK_DIST

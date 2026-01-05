@@ -11,8 +11,8 @@
 #
 # Modifies the array in place and returns it.
 
-# TODO: namespace pollution - wrap in a module (e.g., NDArrayOps.prefix_sum or as a method on NDArray)
-def prefix_sum(array)
+module NDArrayOps
+  def self.prefix_sum(array)
   shape = array.shape
 
   if shape.length == 1
@@ -51,4 +51,5 @@ def prefix_sum(array)
   end
 
   array
+  end
 end

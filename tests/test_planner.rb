@@ -6,8 +6,8 @@ def test_planner_basic_path(_args, assert)
   grid = NDArray.new(grid_data, [4, 4])
 
   # Create planner
-  planner = createPlanner(grid)
-  assert.true!(planner.is_a?(L1PathPlanner), 'planner should be L1PathPlanner instance')
+  planner = Planner.create(grid)
+  assert.true!(planner.is_a?(Planner::L1PathPlanner), 'planner should be Planner::L1PathPlanner instance')
 
   # Test path from (0,0) to (2,3)
   # Note: despite parameter names, first pair is SOURCE, second pair is TARGET
@@ -39,7 +39,7 @@ def test_planner_blocked_path(_args, assert)
   ]
   grid = NDArray.new(grid_data, [4, 4])
 
-  planner = createPlanner(grid)
+  planner = Planner.create(grid)
 
   # Try to path from (0,0) to (2,0) - blocked by wall
   path = []
@@ -53,7 +53,7 @@ def test_planner_same_start_end(_args, assert)
   grid_data = Array.new(16, 0)
   grid = NDArray.new(grid_data, [4, 4])
 
-  planner = createPlanner(grid)
+  planner = Planner.create(grid)
 
   # Path from (1,1) to (1,1)
   path = []
@@ -69,7 +69,7 @@ def test_planner_direct_connection(_args, assert)
   grid_data = Array.new(16, 0)
   grid = NDArray.new(grid_data, [4, 4])
 
-  planner = createPlanner(grid)
+  planner = Planner.create(grid)
 
   # Path from (0,0) to (2,3) - direct L1 path
   path = []

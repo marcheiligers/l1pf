@@ -57,7 +57,7 @@ def init_demo(args)
   args.state.grid_data[args.state.end_y * GRID_SIZE + args.state.end_x] = 0
 
   # Create planner
-  args.state.planner = createPlanner(args.state.grid)
+  args.state.planner = Planner.create(args.state.grid)
 
   # State for dragging
   args.state.dragging = nil # :start or :end
@@ -138,7 +138,7 @@ def handle_input(args)
         args.state.grid_data[end_idx] = 0
 
         args.state.grid = TwoDArray.new(args.state.grid_data, [GRID_SIZE, GRID_SIZE])
-        args.state.planner = createPlanner(args.state.grid)
+        args.state.planner = Planner.create(args.state.grid)
       end
     end
   end
@@ -197,7 +197,7 @@ def handle_input(args)
     args.state.grid_data[end_idx] = 0
 
     args.state.grid = TwoDArray.new(args.state.grid_data, [GRID_SIZE, GRID_SIZE])
-    args.state.planner = createPlanner(args.state.grid)
+    args.state.planner = Planner.create(args.state.grid)
   end
 end
 
@@ -212,7 +212,7 @@ def update_path(args)
 
     # Recreate grid and planner
     args.state.grid = TwoDArray.new(args.state.grid_data, [GRID_SIZE, GRID_SIZE])
-    args.state.planner = createPlanner(args.state.grid)
+    args.state.planner = Planner.create(args.state.grid)
     args.state.needs_planner_update = false
   end
 

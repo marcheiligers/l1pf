@@ -41,7 +41,7 @@ def test_contour2d_basic_square(_args, assert)
   ]
 
   grid = NDArray.new(image.flatten, [4, 4])
-  result = getContours(grid, false)
+  result = Contour2D.get_contours(grid,false)
 
   expected = [
     [[1, 1], [1, 3], [3, 3], [3, 1]]
@@ -63,7 +63,7 @@ def test_contour2d_basic_square_cw(_args, assert)
   ]
 
   grid = NDArray.new(image.flatten, [4, 4])
-  result = getContours(grid, true)
+  result = Contour2D.get_contours(grid,true)
 
   expected = [
     [[1, 1], [3, 1], [3, 3], [1, 3]]
@@ -85,7 +85,7 @@ def test_contour2d_complex_shape(_args, assert)
   ]
 
   grid = NDArray.new(image.flatten, [4, 4])
-  result = getContours(grid, false)
+  result = Contour2D.get_contours(grid,false)
 
   expected = [
     [[2, 0], [2, 2], [0, 2], [0, 4], [2, 4], [2, 2], [4, 2], [4, 0]]
@@ -106,7 +106,7 @@ def test_contour2d_donut(_args, assert)
   ]
 
   grid = NDArray.new(image.flatten, [3, 3])
-  result = getContours(grid, true)
+  result = Contour2D.get_contours(grid,true)
 
   expected = [
     [[0, 0], [3, 0], [3, 3], [0, 3]],
@@ -126,7 +126,7 @@ def test_contour2d_single_cell(_args, assert)
   ]
 
   grid = NDArray.new(image.flatten, [1, 1])
-  result = getContours(grid, true)
+  result = Contour2D.get_contours(grid,true)
 
   expected = [
     [[0, 0], [1, 0], [1, 1], [0, 1]]
