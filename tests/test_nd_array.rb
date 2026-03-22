@@ -73,7 +73,7 @@ def test_nd_to_a(_args, assert)
   assert.equal!(n.get(1, 1), a[1][1])
 
   # 3d
-  n = NDArray.new(iota(24), [2, 3, 4])
+  n = NDArray.new(ArrayUtils.iota(24), [2, 3, 4])
   a = n.to_a
   2.times do |x|
     3.times do |y|
@@ -155,7 +155,7 @@ def test_ndarray_size(_args, assert)
 end
 
 def test_ndarray_step(_args, assert)
-  x = NDArray.new(iota(10))
+  x = NDArray.new(ArrayUtils.iota(10))
 
   y = x.step(-1)
   10.times do |i|
@@ -185,20 +185,29 @@ end
 # ndarray = require("./ndarray.js")
 # console.log(ps.map((p) => ndarray(p, p, p).order))
 
+INVERTS = [
+  [0, 1, 2],
+  [0, 2, 1],
+  [1, 0, 2],
+  [1, 2, 0],
+  [2, 0, 1],
+  [2, 1, 0]
+].map { |perm| [perm, Permutations.invert(perm)] }
+
 ORDERS = [
-  [ 0, 1, 2 ],
-  [ 0, 2, 1 ],
-  [ 1, 0, 2 ],
-  [ 1, 2, 0 ],
-  [ 2, 0, 1 ],
-  [ 2, 1, 0 ]
+  [0, 1, 2],
+  [0, 2, 1],
+  [1, 0, 2],
+  [1, 2, 0],
+  [2, 0, 1],
+  [2, 1, 0]
 ].zip([
-  [ 0, 1, 2 ],
-  [ 0, 2, 1 ],
-  [ 1, 0, 2 ],
-  [ 2, 0, 1 ],
-  [ 1, 2, 0 ],
-  [ 2, 1, 0 ]
+  [0, 1, 2],
+  [0, 2, 1],
+  [1, 0, 2],
+  [2, 0, 1],
+  [1, 2, 0],
+  [2, 1, 0]
 ])
 
 def test_ndarray_order(_args, assert)
@@ -206,8 +215,8 @@ def test_ndarray_order(_args, assert)
 
   assert.equal!(NDArray.new([0]).pick(0).order, [])
 
-  assert.equal!(NDArray.new(Array.new(2), iota(2), [0, 1]).order, [0, 1])
-  assert.equal!(NDArray.new(Array.new(2), iota(2), [1, 0]).order, [1, 0])
+  assert.equal!(NDArray.new(Array.new(2), ArrayUtils.iota(2), [0, 1]).order, [0, 1])
+  assert.equal!(NDArray.new(Array.new(2), ArrayUtils.iota(2), [1, 0]).order, [1, 0])
 
   ORDERS.each do |from, to|
     assert.equal!(NDArray.new(from, from, from).order, to)
@@ -286,7 +295,6 @@ end
 #   t.end()
 # })
 
-
 def test_nildarray(_args, assert)
   # TODO: test other methods compared to ndarray.js
   n = NilDArray.new([1])
@@ -298,7 +306,3 @@ def test_nildarray(_args, assert)
   assert.equal!(n.order, [])
   assert.equal!(n.get, nil)
 end
-
-$gtk.reset rand(1_000_000)
-# $gtk.log_level = :off
-$gtk.tests.start

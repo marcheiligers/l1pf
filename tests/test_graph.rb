@@ -50,7 +50,7 @@ def graph_check_default_graph_invariant(assert, graph)
     # Check topology
     v.edges.each.with_index do |u, j|
       v_idx = u.edges.index(v)
-      t.true!(v_idx >= 0, "vertex #{[v.x, v.y]} not linked to #{[u.x, u.y]}")
+      assert.true!(v_idx >= 0, "vertex #{[v.x, v.y]} not linked to #{[u.x, u.y]}")
     end
 
     assert.equal!(v.left, Vertex::NIL, 'left is not clear')
@@ -92,7 +92,7 @@ def test_graph_a_star_singleton(_args, assert)
   g.add_s(v)
   assert.equal!(v.state, 2, 'v active')
 
-  assert.equal!(g.search, INFINITY, 'disconnected')
+  assert.equal!(g.search, Vertex::INFINITY, 'disconnected')
 
   graph_check_default_graph_invariant(assert, g)
 end
@@ -111,8 +111,8 @@ def test_graph_a_star_grid(_args, assert)
   # Link edges
   10.times do |i|
     10.times do |j|
-      g.link(verts[i][j], verts[i+1][j])
-      g.link(verts[i][j], verts[i][j+1])
+      g.link(verts[i][j], verts[i + 1][j])
+      g.link(verts[i][j], verts[i][j + 1])
     end
   end
 
@@ -126,7 +126,7 @@ def test_graph_a_star_grid(_args, assert)
     tx = rand(10)
     ty = rand(10)
 
-    g.set_source_and_target(sx,sy, tx,ty)
+    g.set_source_and_target(sx, sy, tx, ty)
 
     g.add_t(verts[tx][ty])
     assert.true!(verts[tx][ty].state & 1, 'target is not ok')
@@ -136,7 +136,7 @@ def test_graph_a_star_grid(_args, assert)
     assert.equal!(g.search(), (sx - tx).abs + (sy - ty).abs, 'dist is not ok')
     graph_check_default_graph_invariant(assert, g)
 
-    path = g.getPath([])
+    path = g.get_path([])
     assert.true!(path.length >= 2)
     assert.equal!(path[0], tx, 'path end x is not ok')
     assert.equal!(path[1], ty, 'path end y is not ok')
@@ -148,7 +148,7 @@ def test_graph_a_star_grid(_args, assert)
       nn += 1
     end
 
-    assert.equal!(path[path.length-2], sx, 'path start x is not ok')
-    assert.equal!(path[path.length-1], sy, 'path start y is not ok')
+    assert.equal!(path[path.length - 2], sx, 'path start x is not ok')
+    assert.equal!(path[path.length - 1], sy, 'path start y is not ok')
   end
 end
