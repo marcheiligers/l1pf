@@ -33,11 +33,14 @@ class PlannerBuilder
   def build
     root = make_tree(@geom.corners, -Float::INFINITY, Float::INFINITY)
 
-    # Link edges
-    l = @edges.length
-    i = -1
-    while (i += 1) < l
-      @graph.link(@verts[@edges[i][0]], @verts[@edges[i][1]])
+    # Link edges (stored as flat pairs: [u0, v0, u1, v1, ...])
+    edges = @edges
+    verts = @verts
+    l = edges.length
+    i = 0
+    while i < l
+      @graph.link(verts[edges[i]], verts[edges[i + 1]])
+      i += 2
     end
 
     # Initialize graph
@@ -58,17 +61,26 @@ private
 
   def make_leaf(corners, x0, x1)
     local_verts = []
+    geom = @geom
+    edges = @edges
+    verts = @verts
+    graph = @graph
     l = corners.length
     i = -1
     while (i += 1) < l
       u = corners[i]
-      ux = @graph.vertex(u[0], u[1])
+      u0 = u[0]
+      u1 = u[1]
+      ux = graph.vertex(u0, u1)
       local_verts.push(ux)
-      @verts[u] = ux
+      verts[u] = ux
       j = -1
       while (j += 1) < i
         v = corners[j]
-        @edges.push([u,v]) if !@geom.stab_box(u[0], u[1], v[0], v[1])
+        unless geom.stab_box(u0, u1, v[0], v[1])
+          edges.push(u)
+          edges.push(v)
+        end
       end
     end
 
@@ -106,7 +118,10 @@ private
     while (i += 1) < on.length
       u = on[i-1]
       v = on[i]
-      @edges.push([u,v]) if !@geom.stab_box(u[0], u[1], v[0], v[1])
+      unless @geom.stab_box(u[0], u[1], v[0], v[1])
+        @edges.push(u)
+        @edges.push(v)
+      end
     end
 
     {
@@ -144,14 +159,21 @@ private
 
   def bipartite(a, b)
     l = a.length
+    bl = b.length
+    geom = @geom
+    edges = @edges
     i = -1
     while (i += 1) < l
       u = a[i]
-      bl = b.length
+      ux = u[0]
+      uy = u[1]
       j = -1
       while (j += 1) < bl
         v = b[j]
-        @edges.push([u,v]) unless @geom.stab_box(u[0], u[1], v[0], v[1])
+        unless geom.stab_box(ux, uy, v[0], v[1])
+          edges.push(u)
+          edges.push(v)
+        end
       end
     end
   end
@@ -183,7 +205,7 @@ private
     end
 
     # Sort on events by y then x
-    on.sort! { |a, b| compare_pair(a, b) }
+    on.sort! { |a, b| d = a[1] - b[1]; d == 0 ? a[0] - b[0] : d }
 
     # Construct vertices and horizontal edges
     vis = []
@@ -252,7 +274,9 @@ private
     l = vis.length
     while i < l
       v0 = i
-      v1 = (i + BUCKET_SIZE - 1).lesser(l - 1)
+      t = i + BUCKET_SIZE - 1
+      lm1 = l - 1
+      v1 = t < lm1 ? t : lm1
       # Continue while next element exists and has same y coordinate
       while v1 + 1 < l && vis[v1][1] == vis[v1 + 1][1]
         v1 += 1
@@ -262,17 +286,36 @@ private
       slice_length = v1 - v0 + 1
       bb = make_bucket(vis.slice(v0, slice_length), x)
       if last_steiner && bb[:steiner0] && !@geom.stab_box(last_steiner[0], last_steiner[1], bb[:steiner0][0], bb[:steiner0][1])
-        @edges.push([last_steiner, bb[:steiner0]])
+        @edges.push(last_steiner)
+        @edges.push(bb[:steiner0])
       end
       last_steiner = bb[:steiner1]
+      bl = bb[:left]
+      br = bb[:right]
+      bo = bb[:on]
+      ml = []
+      mr = []
+      mo = []
+      mi = -1
+      while (mi += 1) < bl.length
+        ml.push(make_vertex(bl[mi]))
+      end
+      mi = -1
+      while (mi += 1) < br.length
+        mr.push(make_vertex(br[mi]))
+      end
+      mi = -1
+      while (mi += 1) < bo.length
+        mo.push(make_vertex(bo[mi]))
+      end
       buckets.push(Bucket.new(
         bb[:y0],
         bb[:y1],
         make_vertex(bb[:steiner0]),
         make_vertex(bb[:steiner1]),
-        bb[:left].map { |v| make_vertex(v) },
-        bb[:right].map { |v| make_vertex(v) },
-        bb[:on].map { |v| make_vertex(v) }
+        ml,
+        mr,
+        mo
       ))
     end
     Node.new(x, buckets, left, right)
@@ -284,6 +327,7 @@ class L1PathPlanner
     @geometry   = geometry
     @graph      = graph
     @root       = root
+    @compare_bucket = method(:compare_bucket)
   end
 
   def search(tx, ty, sx, sy, out = nil)
@@ -372,7 +416,7 @@ private
 
       # Otherwise, glue into buckets
       buckets = node.buckets
-      idx = BSearch.lt(buckets, y, method(:compare_bucket))
+      idx = BSearch.lt(buckets, y, @compare_bucket)
 
       if idx >= 0
         bb = buckets[idx]

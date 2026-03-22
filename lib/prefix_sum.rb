@@ -26,14 +26,16 @@ module NDArrayOps
     # 2D prefix sum (integral image)
     rows = shape[0]
     cols = shape[1]
+    data = array.data
+    stride0 = array.stride[0]
 
     # First pass: compute row-wise prefix sums
     i = -1
     while (i += 1) < rows
+      base = i * stride0
       j = 0
       while (j += 1) < cols
-        val = array.get(i, j) + array.get(i, j - 1)
-        array.set(i, j, val)
+        data[base + j] += data[base + j - 1]
       end
     end
 
@@ -42,8 +44,7 @@ module NDArrayOps
     while (j += 1) < cols
       i = 0
       while (i += 1) < rows
-        val = array.get(i, j) + array.get(i - 1, j)
-        array.set(i, j, val)
+        data[i * stride0 + j] += data[(i - 1) * stride0 + j]
       end
     end
   else

@@ -70,7 +70,8 @@ class Graph
       l = Vertex::NUM_LANDMARKS
       i = -1
       while (i += 1) < l
-        tdist[i] = tdist[i].lesser(vdist[i] + d)
+        t = vdist[i] + d
+        tdist[i] = tdist[i] < t ? tdist[i] : t
       end
     end
   end
@@ -157,6 +158,8 @@ class Graph
         v.state = 2
         to_visit = Vertex.pop(to_visit)
         w = v.weight
+        vx = v.x
+        vy = v.y
         adj = v.edges
 
         al = adj.length
@@ -165,7 +168,7 @@ class Graph
           u = adj[i]
           next if u.state == 2
 
-          d = w + (v.x - u.x).abs + (v.y - u.y).abs
+          d = w + (vx - u.x).abs + (vy - u.y).abs
           if u.state == 0
             u.state = 1
             u.weight = d
@@ -187,7 +190,8 @@ class Graph
         s = Vertex::INFINITY
         j = -1
         while (j += 1) < k
-          s = s.lesser(u.landmark[j])
+          lj = u.landmark[j]
+          s = s < lj ? s : lj
         end
         if s > farthest_d
           v = u
@@ -219,14 +223,14 @@ class Graph
     if @last_s && @last_t && @last_s.component == @last_t.component
       # sx = @src_x.to_i
       # sy = @src_y.to_i
-      tx = @dst_x.to_i
-      ty = @dst_y.to_i
+      tx = @dst_x
+      ty = @dst_y
 
       to_visit = @to_visit
       while to_visit != Vertex::NIL
         node = to_visit
-        nx   = node.x.to_i
-        ny   = node.y.to_i
+        nx   = node.x
+        ny   = node.y
         d    = (node.weight - node.heuristic).floor
 
         if node.state == 3
@@ -250,9 +254,19 @@ class Graph
           state = v.state
           next if state == 4
 
-          vd = d + (nx - v.x).abs + (ny - v.y).abs
+          vx = v.x
+          vy = v.y
+          vd = d + (nx - vx).abs + (ny - vy).abs
           if state < 2
-            vh      = heuristic(tdist, tx, ty, v)
+            # Inline heuristic
+            vh = (vx - tx).abs + (vy - ty).abs
+            ndist = v.landmark
+            hi = -1
+            while (hi += 1) < Vertex::NUM_LANDMARKS
+              hd = tdist[hi] - ndist[hi]
+              vh = hd > vh ? hd : vh
+            end
+            vh = 1.0000009536743164 * vh
             v.state    |= 2
             v.heuristic = vh
             v.weight    = vh + vd
@@ -297,7 +311,8 @@ private
     ndist = node.landmark
     i = -1
     while (i += 1) < Vertex::NUM_LANDMARKS
-      pi = pi.greater(tdist[i] - ndist[i])
+      d = tdist[i] - ndist[i]
+      pi = d > pi ? d : pi
     end
     1.0000009536743164 * pi # TODO: this magic number seems very specific. what is it?
   end

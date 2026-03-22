@@ -22,6 +22,10 @@ ContourVertex = Struct.new(:x, :y, :segment, :orientation)
 def self.get_parallel_contours(array, direction)
   n = array.shape[0]
   m = array.shape[1]
+  data = array.data
+  s0 = array.stride[0]
+  s1 = array.stride[1]
+  off = array.offset
   contours = []
 
   # Scan top row
@@ -35,7 +39,7 @@ def self.get_parallel_contours(array, direction)
   jj = -1
   while (jj += 1) < m
     j = jj
-    b = array.get(0, j) != 0
+    b = data[off + s1 * j] != 0
     next if b == a
 
     contours.push(Segment.new(x0, j, direction, 0)) if a
@@ -53,11 +57,14 @@ def self.get_parallel_contours(array, direction)
     b = false
     x0 = 0
     j = 0
+    base_prev = off + s0 * (i - 1)
+    base_curr = off + s0 * i
     jj = -1
     while (jj += 1) < m
       j = jj
-      c = array.get(i-1, j) != 0
-      d = array.get(i, j) != 0
+      js1 = s1 * j
+      c = data[base_prev + js1] != 0
+      d = data[base_curr + js1] != 0
       next if c == a && d == b
 
       if a != b
@@ -87,10 +94,11 @@ def self.get_parallel_contours(array, direction)
   a = false
   x0 = 0
   j = 0
+  base_last = off + s0 * (n - 1)
   jj = -1
   while (jj += 1) < m
     j = jj
-    b = array.get(n - 1, j) != 0
+    b = data[base_last + s1 * j] != 0
     next if b == a
 
     contours.push(Segment.new(j, x0, direction, n)) if a
@@ -160,12 +168,12 @@ def self.get_contours(array, clockwise)
   # First extract horizontal contours and vertices
   hcontours = Contour2D.get_parallel_contours(array, 0)
   hvertices = Contour2D.get_vertices(hcontours)
-  hvertices.sort! { |a, b| Contour2D.compare_vertex(a, b) }
+  hvertices.sort! { |a, b| ((d = a.x - b.x) != 0 ? d : ((d = a.y - b.y) != 0 ? d : a.orientation - b.orientation)) }
 
   # Extract vertical contours and vertices
   vcontours = Contour2D.get_parallel_contours(array.transpose(1, 0), 1)
   vvertices = Contour2D.get_vertices(vcontours)
-  vvertices.sort! { |a, b| Contour2D.compare_vertex(a, b) }
+  vvertices.sort! { |a, b| ((d = a.x - b.x) != 0 ? d : ((d = a.y - b.y) != 0 ? d : a.orientation - b.orientation)) }
 
   # Glue horizontal and vertical vertices together
   l = hvertices.length

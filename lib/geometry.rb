@@ -16,6 +16,8 @@ module Geometry
   def initialize(corners, grid)
     @corners = corners
     @grid    = grid
+    @grid_data = grid.data
+    @grid_stride0 = grid.stride[0]
     @max_x   = grid.shape[0] - 1
     @max_y   = grid.shape[1] - 1
   end
@@ -28,36 +30,26 @@ module Geometry
     stab_box(x, y, x, y)
   end
 
-  def integrate(x, y)
-    return 0 if x < 0 || y < 0
-
-    @grid.get(
-      x.lesser(@grid.shape[0] - 1),
-      y.lesser(@grid.shape[1] - 1)
-    )
-  end
-
   def stab_box(ax, ay, bx, by)
-    lox = ax.lesser(bx)
-    loy = ay.lesser(by)
-    hix = ax.greater(bx)
-    hiy = ay.greater(by)
+    lox = ax < bx ? ax : bx
+    loy = ay < by ? ay : by
+    hix = ax > bx ? ax : bx
+    hiy = ay > by ? ay : by
 
-    # Inline integrate() to avoid method call overhead
+    max_x = @max_x
+    max_y = @max_y
+    data = @grid_data
+    stride0 = @grid_stride0
+
     lox1 = lox - 1
     loy1 = loy - 1
 
-    # integrate(lox - 1, loy - 1)
-    v1 = (lox1 < 0 || loy1 < 0) ? 0 : @grid.get(lox1.lesser(@max_x), loy1.lesser(@max_y))
-
-    # integrate(lox - 1, hiy)
-    v2 = (lox1 < 0 || hiy < 0) ? 0 : @grid.get(lox1.lesser(@max_x), hiy.lesser(@max_y))
-
-    # integrate(hix, loy - 1)
-    v3 = (hix < 0 || loy1 < 0) ? 0 : @grid.get(hix.lesser(@max_x), loy1.lesser(@max_y))
-
-    # integrate(hix, hiy)
-    v4 = (hix < 0 || hiy < 0) ? 0 : @grid.get(hix.lesser(@max_x), hiy.lesser(@max_y))
+    # Inline integrate + grid.get to avoid method calls
+    # grid.get(x, y) => data[x * stride0 + y] (stride[1] is always 1)
+    v1 = (lox1 < 0 || loy1 < 0) ? 0 : data[(lox1 < max_x ? lox1 : max_x) * stride0 + (loy1 < max_y ? loy1 : max_y)]
+    v2 = (lox1 < 0 || hiy < 0) ? 0 : data[(lox1 < max_x ? lox1 : max_x) * stride0 + (hiy < max_y ? hiy : max_y)]
+    v3 = (hix < 0 || loy1 < 0) ? 0 : data[(hix < max_x ? hix : max_x) * stride0 + (loy1 < max_y ? loy1 : max_y)]
+    v4 = (hix < 0 || hiy < 0) ? 0 : data[(hix < max_x ? hix : max_x) * stride0 + (hiy < max_y ? hiy : max_y)]
 
     v1 - v2 - v3 + v4 > 0
   end
@@ -99,7 +91,7 @@ module Geometry
           # Compute b[j] + min(sign(offset[j]), 0)
           # This gives b[j] if offset is positive, b[j]-1 if negative
           sign = offset[j] < 0 ? -1 : 1
-          offset[j] = b[j] + sign.lesser(0)
+          offset[j] = b[j] + (sign < 0 ? sign : 0)
         end
         if(offset[0] >= 0 && offset[0] < grid.shape[0] &&
            offset[1] >= 0 && offset[1] < grid.shape[1] &&
