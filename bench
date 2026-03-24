@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# Use provided bench file or default
+BENCH_FILE=${1:-benchmarks/bench_iota.rb}
+
+# Normalize the path
+if [ "$1" ]; then
+  # Add benchmarks/ prefix if missing
+  if [[ "$BENCH_FILE" != benchmarks/* ]]; then
+    BENCH_FILE="benchmarks/$BENCH_FILE"
+  fi
+
+  # Add bench_ prefix to basename if missing
+  BASENAME="${BENCH_FILE#benchmarks/}"
+  if [[ "$BASENAME" != bench_* ]]; then
+    BENCH_FILE="benchmarks/bench_$BASENAME"
+  fi
+
+  # Add .rb extension if missing
+  if [[ "$BENCH_FILE" != *.rb ]]; then
+    BENCH_FILE="$BENCH_FILE.rb"
+  fi
+fi
+
+if [ ! -f "$BENCH_FILE" ]; then
+  echo "Error: Bench file not found: $BENCH_FILE"
+  exit 1
+fi
+
+cd ..
+SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy ./dragonruby l1pf --eval "$BENCH_FILE"

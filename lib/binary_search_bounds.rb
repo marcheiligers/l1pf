@@ -1,19 +1,25 @@
-# "use strict"
-
-# (a, y, c, l, h) = (array, y[, cmp, lo, hi])
-
-# TODO: Handle c (see https://github.com/mikolalysenko/binary-search-bounds byLegs example)
-#  OR nuke the whole c thing
-#  and handle norm
+# Binary search bounds functions
+# Translated from: https://github.com/mikolalysenko/binary-search-bounds
+#
+# Parameters:
+#   a - array to search
+#   y - value to search for
+#   c - comparator function (optional lambda/proc that takes (x, y) and returns x - y)
+#   l - low index
+#   h - high index
 
 module BSearch
-  def ge(a, y, c, l, h)
+  extend self
+
+  def ge(a, y, c = nil, l = nil, h = nil)
+    l = 0 if l.nil?
+    h = a.length - 1 if h.nil?
     i = h + 1
 
     while l <= h
-      m = (l + h) >> 1
+      m = (l + h) >> 1 # TODO: bitwise shift for division by 2 - is this the idiomatic Ruby way?
       x = a[m]
-      p = c ? c(x, y) : (x - y)
+      p = c ? c.call(x, y) : (x - y)
       if p >= 0
         i = m
         h = m - 1
@@ -25,13 +31,15 @@ module BSearch
     i
   end
 
-  def gt(a, y, c, l, h)
+  def gt(a, y, c = nil, l = nil, h = nil)
+    l = 0 if l.nil?
+    h = a.length - 1 if h.nil?
     i = h + 1
 
     while l <= h
       m = (l + h) >> 1
       x = a[m]
-      p = c ? c(x, y) : (x - y)
+      p = c ? c.call(x, y) : (x - y)
       if p > 0
         i = m
         h = m - 1
@@ -43,13 +51,15 @@ module BSearch
     i
   end
 
-  def lt(a, y, c, l, h)
+  def lt(a, y, c = nil, l = nil, h = nil)
+    l = 0 if l.nil?
+    h = a.length - 1 if h.nil?
     i = l - 1
 
     while l <= h
       m = (l + h) >> 1
       x = a[m]
-      p = c ? c(x, y) : (x - y)
+      p = c ? c.call(x, y) : (x - y)
       if p < 0
         i = m
         l = m + 1
@@ -61,13 +71,15 @@ module BSearch
     i
   end
 
-  def le(a, y, c, l, h)
+  def le(a, y, c = nil, l = nil, h = nil)
+    l = 0 if l.nil?
+    h = a.length - 1 if h.nil?
     i = l - 1
 
     while l <= h
       m = (l + h) >> 1
       x = a[m]
-      p = c ? c(x, y) : (x - y)
+      p = c ? c.call(x, y) : (x - y)
       if p <= 0
         i = m
         l = m + 1
@@ -79,11 +91,13 @@ module BSearch
     i
   end
 
-  def eq(a, y, c, l, h)
+  def eq(a, y, c = nil, l = nil, h = nil)
+    l = 0 if l.nil?
+    h = a.length - 1 if h.nil?
     while l <= h
       m = (l + h) >> 1
       x = a[m]
-      p = c ? c(x, y) : (x - y)
+      p = c ? c.call(x, y) : (x - y)
       return m if p == 0
 
       if p <= 0
@@ -96,6 +110,7 @@ module BSearch
     -1
   end
 
+  # TODO: is the norm function needed? it seems to handle optional parameters differently than the Ruby version
   # def norm(a, y, c, l, h, f)
   #   if (typeof c === 'function') {
   #     return f(a, y, c, (l === undefined) ? 0 : l | 0, (h === undefined) ? a.length - 1 : h | 0);
