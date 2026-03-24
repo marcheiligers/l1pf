@@ -11,15 +11,15 @@
 
 module Geometry
   class PathGeometry
-  attr_reader :corners, :grid
+  attr_reader :corners, :grid, :grid_data, :grid_cols, :max_x, :max_y
 
   def initialize(corners, grid)
     @corners = corners
     @grid    = grid
     @grid_data = grid.data
-    @grid_stride0 = grid.stride[0]
-    @max_x   = grid.shape[0] - 1
-    @max_y   = grid.shape[1] - 1
+    @grid_cols = grid.cols
+    @max_x   = grid.rows - 1
+    @max_y   = grid.cols - 1
   end
 
   def stab_ray(vx, vy, x)
@@ -39,7 +39,7 @@ module Geometry
     max_x = @max_x
     max_y = @max_y
     data = @grid_data
-    stride0 = @grid_stride0
+    stride0 = @grid_cols
 
     lox1 = lox - 1
     loy1 = loy - 1
@@ -93,8 +93,8 @@ module Geometry
           sign = offset[j] < 0 ? -1 : 1
           offset[j] = b[j] + (sign < 0 ? sign : 0)
         end
-        if(offset[0] >= 0 && offset[0] < grid.shape[0] &&
-           offset[1] >= 0 && offset[1] < grid.shape[1] &&
+        if(offset[0] >= 0 && offset[0] < grid.rows &&
+           offset[1] >= 0 && offset[1] < grid.cols &&
            grid.get(offset[0], offset[1]) == 0)
           corners.push(offset)
         end
@@ -106,10 +106,38 @@ module Geometry
   # corners = uniq(corners, method(:comparePair))
   corners.uniq!
 
-  # Create integral image
-  img = TwoDArray.new(Array.new(grid.shape[0]*grid.shape[1], 0), grid.shape)
-  NDArrayOps.ops_gts(img, grid, 0)
-  NDArrayOps.prefix_sum(img)
+  # Create integral image using L1Grid
+  grid_rows = grid.rows
+  grid_cols = grid.cols
+  grid_data = grid.data
+  size = grid_rows * grid_cols
+  img_data = Array.new(size, 0)
+
+  # Binarize: img[i] = grid[i] > 0 ? 1 : 0
+  i = -1
+  while (i += 1) < size
+    img_data[i] = grid_data[i] > 0 ? 1 : 0
+  end
+
+  # Prefix sum (integral image) - row-wise then column-wise
+  i = -1
+  while (i += 1) < grid_rows
+    base = i * grid_cols
+    j = 0
+    while (j += 1) < grid_cols
+      img_data[base + j] += img_data[base + j - 1]
+    end
+  end
+
+  j = -1
+  while (j += 1) < grid_cols
+    i = 0
+    while (i += 1) < grid_rows
+      img_data[i * grid_cols + j] += img_data[(i - 1) * grid_cols + j]
+    end
+  end
+
+  img = L1Grid.new(img_data, grid_rows, grid_cols)
 
   # Return resulting geometry
   PathGeometry.new(corners, img)

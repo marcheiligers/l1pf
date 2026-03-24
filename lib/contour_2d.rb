@@ -20,11 +20,11 @@ end
 ContourVertex = Struct.new(:x, :y, :segment, :orientation)
 
 def self.get_parallel_contours(array, direction)
-  n = array.shape[0]
-  m = array.shape[1]
+  n = array.rows
+  m = array.cols
   data = array.data
-  s0 = array.stride[0]
-  s1 = array.stride[1]
+  s0 = array.stride0
+  s1 = array.stride1
   off = array.offset
   contours = []
 

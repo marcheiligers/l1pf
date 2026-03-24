@@ -1,3 +1,4 @@
+require_relative 'grid'
 require_relative 'serializable'
 require_relative 'permutations'
 require_relative 'iota_array'

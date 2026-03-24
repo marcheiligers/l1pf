@@ -20,6 +20,7 @@ Bucket = Struct.new(:y0, :y1, :top, :bottom, :left, :right, :on)
 
 Node = Struct.new(:x, :buckets, :left, :right)
 
+
 class PlannerBuilder
   LEAF_CUTOFF = 64
   BUCKET_SIZE = 32
@@ -28,12 +29,17 @@ class PlannerBuilder
     @graph = Graph.new
     @verts = {}
     @edges = []
+    # Cache grid internals for inlined stab_box
+    @sb_data = @geom.grid_data
+    @sb_cols = @geom.grid_cols
+    @sb_mx = @geom.max_x
+    @sb_my = @geom.max_y
   end
 
   def build
     root = make_tree(@geom.corners, -Float::INFINITY, Float::INFINITY)
 
-    # Link edges (stored as flat pairs: [u0, v0, u1, v1, ...])
+    # Link deferred edges
     edges = @edges
     verts = @verts
     l = edges.length
@@ -61,10 +67,12 @@ private
 
   def make_leaf(corners, x0, x1)
     local_verts = []
-    geom = @geom
-    edges = @edges
     verts = @verts
     graph = @graph
+    sb_data = @sb_data
+    sb_cols = @sb_cols
+    sb_mx = @sb_mx
+    sb_my = @sb_my
     l = corners.length
     i = -1
     while (i += 1) < l
@@ -77,9 +85,17 @@ private
       j = -1
       while (j += 1) < i
         v = corners[j]
-        unless geom.stab_box(u0, u1, v[0], v[1])
-          edges.push(u)
-          edges.push(v)
+        # Inline stab_box(u0, u1, v[0], v[1])
+        bx = v[0]; by = v[1]
+        lox = u0 < bx ? u0 : bx; loy = u1 < by ? u1 : by
+        hix = u0 > bx ? u0 : bx; hiy = u1 > by ? u1 : by
+        lox1 = lox - 1; loy1 = loy - 1
+        sv1 = (lox1 < 0 || loy1 < 0) ? 0 : sb_data[(lox1 < sb_mx ? lox1 : sb_mx) * sb_cols + (loy1 < sb_my ? loy1 : sb_my)]
+        sv2 = (lox1 < 0 || hiy < 0) ? 0 : sb_data[(lox1 < sb_mx ? lox1 : sb_mx) * sb_cols + (hiy < sb_my ? hiy : sb_my)]
+        sv3 = (hix < 0 || loy1 < 0) ? 0 : sb_data[(hix < sb_mx ? hix : sb_mx) * sb_cols + (loy1 < sb_my ? loy1 : sb_my)]
+        sv4 = (hix < 0 || hiy < 0) ? 0 : sb_data[(hix < sb_mx ? hix : sb_mx) * sb_cols + (hiy < sb_my ? hiy : sb_my)]
+        unless sv1 - sv2 - sv3 + sv4 > 0
+          graph.link(ux, local_verts[j])
         end
       end
     end
@@ -114,25 +130,29 @@ private
     bipartite(on, right)
 
     # Connect vertical edges
+    sb_data = @sb_data
+    sb_cols = @sb_cols
+    sb_mx = @sb_mx
+    sb_my = @sb_my
     i = 0
     while (i += 1) < on.length
       u = on[i-1]
       v = on[i]
-      unless @geom.stab_box(u[0], u[1], v[0], v[1])
+      ax = u[0]; ay = u[1]; bx = v[0]; by = v[1]
+      lox = ax < bx ? ax : bx; loy = ay < by ? ay : by
+      hix = ax > bx ? ax : bx; hiy = ay > by ? ay : by
+      lox1 = lox - 1; loy1 = loy - 1
+      sv1 = (lox1 < 0 || loy1 < 0) ? 0 : sb_data[(lox1 < sb_mx ? lox1 : sb_mx) * sb_cols + (loy1 < sb_my ? loy1 : sb_my)]
+      sv2 = (lox1 < 0 || hiy < 0) ? 0 : sb_data[(lox1 < sb_mx ? lox1 : sb_mx) * sb_cols + (hiy < sb_my ? hiy : sb_my)]
+      sv3 = (hix < 0 || loy1 < 0) ? 0 : sb_data[(hix < sb_mx ? hix : sb_mx) * sb_cols + (loy1 < sb_my ? loy1 : sb_my)]
+      sv4 = (hix < 0 || hiy < 0) ? 0 : sb_data[(hix < sb_mx ? hix : sb_mx) * sb_cols + (hiy < sb_my ? hiy : sb_my)]
+      unless sv1 - sv2 - sv3 + sv4 > 0
         @edges.push(u)
         @edges.push(v)
       end
     end
 
-    {
-      left:     left,
-      right:    right,
-      on:       on,
-      steiner0: lo_steiner,
-      steiner1: hi_steiner,
-      y0:       y0,
-      y1:       y1
-    }
+    { left: left, right: right, on: on, steiner0: lo_steiner, steiner1: hi_steiner, y0: y0, y1: y1 }
   end
 
   def add_steiner(x, on, y, first)
@@ -160,8 +180,11 @@ private
   def bipartite(a, b)
     l = a.length
     bl = b.length
-    geom = @geom
     edges = @edges
+    sb_data = @sb_data
+    sb_cols = @sb_cols
+    sb_mx = @sb_mx
+    sb_my = @sb_my
     i = -1
     while (i += 1) < l
       u = a[i]
@@ -170,7 +193,16 @@ private
       j = -1
       while (j += 1) < bl
         v = b[j]
-        unless geom.stab_box(ux, uy, v[0], v[1])
+        # Inline stab_box(ux, uy, v[0], v[1])
+        bx = v[0]; by = v[1]
+        lox = ux < bx ? ux : bx; loy = uy < by ? uy : by
+        hix = ux > bx ? ux : bx; hiy = uy > by ? uy : by
+        lox1 = lox - 1; loy1 = loy - 1
+        sv1 = (lox1 < 0 || loy1 < 0) ? 0 : sb_data[(lox1 < sb_mx ? lox1 : sb_mx) * sb_cols + (loy1 < sb_my ? loy1 : sb_my)]
+        sv2 = (lox1 < 0 || hiy < 0) ? 0 : sb_data[(lox1 < sb_mx ? lox1 : sb_mx) * sb_cols + (hiy < sb_my ? hiy : sb_my)]
+        sv3 = (hix < 0 || loy1 < 0) ? 0 : sb_data[(hix < sb_mx ? hix : sb_mx) * sb_cols + (loy1 < sb_my ? loy1 : sb_my)]
+        sv4 = (hix < 0 || hiy < 0) ? 0 : sb_data[(hix < sb_mx ? hix : sb_mx) * sb_cols + (hiy < sb_my ? hiy : sb_my)]
+        unless sv1 - sv2 - sv3 + sv4 > 0
           edges.push(u)
           edges.push(v)
         end
@@ -241,13 +273,7 @@ private
       vis.push([r,y]) if r > x
     end
 
-    {
-      x:       x,
-      left:    left,
-      right:   right,
-      on:      rem,
-      vis:     vis
-    }
+    { x: x, left: left, right: right, on: rem, vis: vis }
   end
 
   def make_tree(corners, x0, x1)
@@ -260,10 +286,12 @@ private
     right     = make_tree(partition[:right], x, x1)
 
     # Construct vertices
-    l = partition[:on].length
+    p_on = partition[:on]
+    l = p_on.length
     i = -1
     while (i += 1) < l
-      @verts[partition[:on][i]] = @graph.vertex(partition[:on][i][0], partition[:on][i][1])
+      c = p_on[i]
+      @verts[c] = @graph.vertex(c[0], c[1])
     end
 
     # Build buckets
@@ -286,8 +314,7 @@ private
       slice_length = v1 - v0 + 1
       bb = make_bucket(vis.slice(v0, slice_length), x)
       if last_steiner && bb[:steiner0] && !@geom.stab_box(last_steiner[0], last_steiner[1], bb[:steiner0][0], bb[:steiner0][1])
-        @edges.push(last_steiner)
-        @edges.push(bb[:steiner0])
+        @graph.link(@verts[last_steiner], @verts[bb[:steiner0]])
       end
       last_steiner = bb[:steiner1]
       bl = bb[:left]
@@ -328,6 +355,11 @@ class L1PathPlanner
     @graph      = graph
     @root       = root
     @compare_bucket = method(:compare_bucket)
+    # Cache grid internals for inlined stab_box
+    @sb_data = geometry.grid_data
+    @sb_cols = geometry.grid_cols
+    @sb_mx = geometry.max_x
+    @sb_my = geometry.max_y
   end
 
   def search(tx, ty, sx, sy, out = nil)
@@ -378,22 +410,34 @@ private
     bucket.y0 - y
   end
 
-  def connect_list(nodes, geom, graph, target, x, y)
+  def connect_list(nodes, graph, target, x, y)
+    sb_data = @sb_data; sb_cols = @sb_cols; sb_mx = @sb_mx; sb_my = @sb_my
     l = nodes.length
     i = -1
     while (i += 1) < l
-      v = nodes[i]
-      if !geom.stab_box(v.x, v.y, x, y)
+      nd = nodes[i]
+      # Inline stab_box(nd.x, nd.y, x, y)
+      ax = nd.x; ay = nd.y
+      lox = ax < x ? ax : x; loy = ay < y ? ay : y
+      hix = ax > x ? ax : x; hiy = ay > y ? ay : y
+      lox1 = lox - 1; loy1 = loy - 1
+      sv1 = (lox1 < 0 || loy1 < 0) ? 0 : sb_data[(lox1 < sb_mx ? lox1 : sb_mx) * sb_cols + (loy1 < sb_my ? loy1 : sb_my)]
+      sv2 = (lox1 < 0 || hiy < 0) ? 0 : sb_data[(lox1 < sb_mx ? lox1 : sb_mx) * sb_cols + (hiy < sb_my ? hiy : sb_my)]
+      sv3 = (hix < 0 || loy1 < 0) ? 0 : sb_data[(hix < sb_mx ? hix : sb_mx) * sb_cols + (loy1 < sb_my ? loy1 : sb_my)]
+      sv4 = (hix < 0 || hiy < 0) ? 0 : sb_data[(hix < sb_mx ? hix : sb_mx) * sb_cols + (hiy < sb_my ? hiy : sb_my)]
+      unless sv1 - sv2 - sv3 + sv4 > 0
         if target
-          graph.add_t(v)
+          graph.add_t(nd)
         else
-          graph.add_s(v)
+          graph.add_s(nd)
         end
       end
     end
   end
 
   def connect_nodes(geom, graph, node, target, x, y)
+    sb_data = @sb_data; sb_cols = @sb_cols; sb_mx = @sb_mx; sb_my = @sb_my
+
     # Mark target nodes
     while node
       # Check leaf case
@@ -402,12 +446,21 @@ private
         l = vv.length
         i = -1
         while (i += 1) < l
-          v = vv[i]
-          if !geom.stab_box(v.x, v.y, x, y)
+          nd = vv[i]
+          # Inline stab_box(nd.x, nd.y, x, y)
+          ax = nd.x; ay = nd.y
+          lox = ax < x ? ax : x; loy = ay < y ? ay : y
+          hix = ax > x ? ax : x; hiy = ay > y ? ay : y
+          lox1 = lox - 1; loy1 = loy - 1
+          sv1 = (lox1 < 0 || loy1 < 0) ? 0 : sb_data[(lox1 < sb_mx ? lox1 : sb_mx) * sb_cols + (loy1 < sb_my ? loy1 : sb_my)]
+          sv2 = (lox1 < 0 || hiy < 0) ? 0 : sb_data[(lox1 < sb_mx ? lox1 : sb_mx) * sb_cols + (hiy < sb_my ? hiy : sb_my)]
+          sv3 = (hix < 0 || loy1 < 0) ? 0 : sb_data[(hix < sb_mx ? hix : sb_mx) * sb_cols + (loy1 < sb_my ? loy1 : sb_my)]
+          sv4 = (hix < 0 || hiy < 0) ? 0 : sb_data[(hix < sb_mx ? hix : sb_mx) * sb_cols + (hiy < sb_my ? hiy : sb_my)]
+          unless sv1 - sv2 - sv3 + sv4 > 0
             if target
-              graph.add_t(v)
+              graph.add_t(nd)
             else
-              graph.add_s(v)
+              graph.add_s(nd)
             end
           end
         end
@@ -423,11 +476,11 @@ private
         if y < bb.y1
           # Common case:
           # Connect right
-          connect_list(bb.right, geom, graph, target, x, y) if node.x >= x
+          connect_list(bb.right, graph, target, x, y) if node.x >= x
           # Connect left
-          connect_list(bb.left, geom, graph, target, x, y) if node.x <= x # TODO: check if this is correct, connecting both right and left if node.x == x
+          connect_list(bb.left, graph, target, x, y) if node.x <= x # TODO: check if this is correct, connecting both right and left if node.x == x
           # Connect on
-          connect_list(bb.on, geom, graph, target, x, y)
+          connect_list(bb.on, graph, target, x, y)
         else
           # Connect to bottom of bucket above
           v = buckets[idx].bottom
@@ -474,6 +527,11 @@ private
 end
 
 def self.create(grid)
+  # Convert to L1Grid if needed for optimized access
+  if !grid.is_a?(L1Grid) && !grid.is_a?(TransposedL1Grid)
+    s = grid.shape
+    grid = L1Grid.new(grid.data, s[0], s[1])
+  end
   builder = PlannerBuilder.new(grid)
   builder.build
 end

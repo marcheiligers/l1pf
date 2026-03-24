@@ -43,7 +43,7 @@ end
 def init_demo(args)
   # Create grid with maze
   args.state.grid_data = generate_maze(GRID_SIZE, GRID_SIZE)
-  args.state.grid = TwoDArray.new(args.state.grid_data, [GRID_SIZE, GRID_SIZE])
+  args.state.grid = L1Grid.new(args.state.grid_data, GRID_SIZE, GRID_SIZE)
 
   # Set start and end points (must be odd coordinates for maze connectivity)
   args.state.start_x = 1
@@ -137,7 +137,7 @@ def handle_input(args)
         args.state.grid_data[start_idx] = 0
         args.state.grid_data[end_idx] = 0
 
-        args.state.grid = TwoDArray.new(args.state.grid_data, [GRID_SIZE, GRID_SIZE])
+        args.state.grid = L1Grid.new(args.state.grid_data, GRID_SIZE, GRID_SIZE)
         args.state.planner = Planner.create(args.state.grid)
       end
     end
@@ -196,7 +196,7 @@ def handle_input(args)
     args.state.grid_data[start_idx] = 0
     args.state.grid_data[end_idx] = 0
 
-    args.state.grid = TwoDArray.new(args.state.grid_data, [GRID_SIZE, GRID_SIZE])
+    args.state.grid = L1Grid.new(args.state.grid_data, GRID_SIZE, GRID_SIZE)
     args.state.planner = Planner.create(args.state.grid)
   end
 end
@@ -211,7 +211,7 @@ def update_path(args)
     args.state.grid_data[end_idx] = 0
 
     # Recreate grid and planner
-    args.state.grid = TwoDArray.new(args.state.grid_data, [GRID_SIZE, GRID_SIZE])
+    args.state.grid = L1Grid.new(args.state.grid_data, GRID_SIZE, GRID_SIZE)
     args.state.planner = Planner.create(args.state.grid)
     args.state.needs_planner_update = false
   end

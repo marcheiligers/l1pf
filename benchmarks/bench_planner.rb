@@ -8,7 +8,7 @@ def tick(args)
     # Use fixed seed for reproducible benchmarks
     srand(12345)
     grid_data = generate_maze(BENCH_SIZE, BENCH_SIZE)
-    grid = TwoDArray.new(grid_data, [BENCH_SIZE, BENCH_SIZE])
+    grid = L1Grid.new(grid_data, BENCH_SIZE, BENCH_SIZE)
 
     # Benchmark planner creation
     GTK.benchmark iterations: 10,

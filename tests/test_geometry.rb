@@ -18,7 +18,7 @@ def test_geometry_simple_grid(_args, assert)
   # Basic checks
   assert.true!(geom.is_a?(Geometry::PathGeometry), 'geometry should be Geometry::PathGeometry instance')
   assert.true!(geom.corners.is_a?(Array), 'corners should be an array')
-  assert.true!(geom.grid.is_a?(NDArray), 'grid should be an NDArray')
+  assert.true!(geom.grid.is_a?(L1Grid), 'grid should be an L1Grid')
 end
 
 def test_geometry_stab_box(_args, assert)

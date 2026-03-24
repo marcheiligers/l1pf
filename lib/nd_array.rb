@@ -397,6 +397,22 @@ class TwoDArray < NDArray
     end
   end
 
+  def rows
+    @shape[0]
+  end
+
+  def cols
+    @shape[1]
+  end
+
+  def stride0
+    @stride[0]
+  end
+
+  def stride1
+    @stride[1]
+  end
+
   def size
     @shape[0] * @shape[1]
   end

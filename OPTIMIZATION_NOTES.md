@@ -6,8 +6,8 @@ Two phases: **planner creation** (expensive, one-time) and **path search** (per-
 
 | | Baseline | Optimized | Improvement |
 |---|---------|-----------|-------------|
-| planner_create | 656ms | 480ms | **27% faster** |
-| path_search | 1400ms | 1165ms | **17% faster** |
+| planner_create | 656ms | 478ms | **27% faster** |
+| path_search | 1400ms | 1197ms | **14% faster** |
 
 ### Changes Applied
 1. Replaced `.lesser`/`.greater` with inline ternary in geometry, graph, planner
@@ -23,6 +23,13 @@ Two phases: **planner creation** (expensive, one-time) and **path search** (per-
 11. Cached `v.x`/`v.y` as locals in `find_landmarks` Dijkstra loop
 12. Flat edge array (push u,v separately instead of `[u,v]` pairs)
 13. Removed unnecessary `.to_i` calls in search
+14. Replaced TwoDArray/NDArray with L1Grid for integral image (no stride indirection)
+15. Inlined `ops_gts` and `prefix_sum` in `create_geometry` (avoid NDArrayOps dispatch)
+16. Updated contour_2d to use `.rows`/`.cols` instead of allocating `.shape` arrays
+17. Added scalar `stride0`/`stride1` attrs to L1Grid/TransposedL1Grid/TwoDArray (avoid array alloc)
+18. Inlined stab_box into make_leaf, bipartite, make_bucket, connect_list, connect_nodes
+19. Cached grid internals (@sb_data/cols/mx/my) as ivars in PlannerBuilder and L1PathPlanner
+20. Immediate vertex linking in make_leaf (avoids deferred edge array + hash lookup batch)
 
 ## Hot Path Summary
 
